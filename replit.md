@@ -1,9 +1,11 @@
-# [Project name]
+# Rep Accountability
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A phone-browser app that counts exercise repetitions using on-device camera pose recognition and tracks workout consistency.
 
 ## Run & Operate
 
+- `pnpm --filter @workspace/rep-accountability run dev` — frontend, through its managed artifact workflow
+- `pnpm --filter @workspace/rep-accountability run typecheck` — frontend typecheck
 - `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
@@ -26,15 +28,17 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- The first version is browser-only with local workout storage, not account-based or cross-device.
+- Camera video and pose inference stay on-device. Never add camera uploads without explicit user consent.
+- Camera access requires a secure browser context. MediaPipe model and WASM assets require internet access when loading.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- Camera-counted squats and bicep curls, session history, daily streaks, and a weekly workout target.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- The user wants the app openable from their phone's browser, rather than requiring a native app.
 
 ## Gotchas
 
