@@ -1,1 +1,2 @@
 - [Generated API naming](generated-api-naming.md) — response component names must not collide with operation-derived Zod exports.
+- [Glob dependency safety](glob-dependency-safety.md) — avoid restoring braces-based glob libraries without confirming a patched release.
