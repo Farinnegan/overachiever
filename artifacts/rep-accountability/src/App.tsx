@@ -94,32 +94,32 @@ function Dashboard({ data }: { data: AppData }) {
   return <main className="page-wrap enter">
     <div className="eyebrow" data-testid="text-today-date">{today.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}</div>
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 20, flexWrap: 'wrap', marginTop: 12 }}>
-      <div><h1 className="page-title">Show up.<br /><span style={{ color: '#9b6c39' }}>Count what counts.</span></h1>
+      <div><h1 className="page-title">Show up.<br /><span style={{ color: 'var(--brand-orange)' }}>Count what counts.</span></h1>
         <p className="subtle" style={{ margin: '13px 0 0', fontSize: 14 }}>{hasToday ? 'You showed up today. Keep that promise to yourself.' : 'No story to tell yet. Just one honest set to begin.'}</p>
       </div>
       <Link href="/session" className="primary-btn" data-testid="button-start-workout"><Dumbbell size={17} /> Start a workout <ArrowRight size={16} /></Link>
     </div>
 
-    <section className="panel" style={{ padding: 22, marginTop: 31, background: '#254d42', color: '#f5f0e6', borderColor: '#254d42', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', right: -30, top: -52, width: 210, height: 210, border: '1px solid #ffffff19', borderRadius: '50%' }} />
-      <div style={{ position: 'absolute', right: 7, top: -28, width: 155, height: 155, border: '1px solid #ffffff19', borderRadius: '50%' }} />
-      <div className="small-label" style={{ color: '#c5d0c8' }}>TODAY'S CHECK-IN</div>
+    <section className="panel" style={{ padding: 22, marginTop: 31, background: 'var(--brand-black)', color: 'var(--brand-white)', borderColor: 'var(--brand-black)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', right: -30, top: -52, width: 210, height: 210, border: '1px solid rgba(255,255,255,.1)', borderRadius: '50%' }} />
+      <div style={{ position: 'absolute', right: 7, top: -28, width: 155, height: 155, border: '1px solid rgba(255,255,255,.1)', borderRadius: '50%' }} />
+      <div className="small-label" style={{ color: 'rgba(255,255,255,.72)' }}>TODAY'S CHECK-IN</div>
       <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: 12, marginTop: 14, position: 'relative' }}>
         <div><div className="font-display" style={{ fontSize: 31, lineHeight: 1.1 }} data-testid="status-today">{hasToday ? 'Promise kept.' : 'Your day is still yours.'}</div>
-          <div style={{ color: '#c5d0c8', fontSize: 12, marginTop: 8 }} data-testid="text-today-summary">{hasToday ? `${todays.length} session${todays.length === 1 ? '' : 's'} · ${reps} honest reps` : 'A few real reps are worth more than a perfect plan.'}</div></div>
-        {hasToday && <div style={{ textAlign: 'right' }}><div className="mono-value" style={{ fontSize: 36, color: '#f1ba73' }} data-testid="value-today-reps">{reps}</div><div className="small-label" style={{ color: '#c5d0c8' }}>REPS</div></div>}
+          <div style={{ color: 'rgba(255,255,255,.72)', fontSize: 12, marginTop: 8 }} data-testid="text-today-summary">{hasToday ? `${todays.length} session${todays.length === 1 ? '' : 's'} · ${reps} honest reps` : 'A few real reps are worth more than a perfect plan.'}</div></div>
+        {hasToday && <div style={{ textAlign: 'right' }}><div className="mono-value" style={{ fontSize: 36, color: 'var(--brand-lime)' }} data-testid="value-today-reps">{reps}</div><div className="small-label" style={{ color: 'rgba(255,255,255,.72)' }}>REPS</div></div>}
       </div>
     </section>
 
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 13, marginTop: 14 }}>
       <div className="panel" style={{ padding: 19 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span className="small-label">THIS WEEK</span><Target size={16} color="#98734c" /></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span className="small-label">THIS WEEK</span><Target size={16} color="var(--brand-orange)" /></div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 15 }}><span className="mono-value" style={{ fontSize: 33 }} data-testid="value-week-workouts">{thisWeek.length}</span><span className="subtle" style={{ fontSize: 12 }}>of {data.weeklyWorkoutGoal} workouts</span></div>
         <div className="phase-track" style={{ marginTop: 12 }}><span style={{ width: `${goalProgress}%` }} /></div>
         <div className="subtle" style={{ fontSize: 11, marginTop: 9 }} data-testid="status-week-goal">{thisWeek.length >= data.weeklyWorkoutGoal ? 'You made your weekly mark.' : `${data.weeklyWorkoutGoal - thisWeek.length} more to meet your target`}</div>
       </div>
       <div className="panel" style={{ padding: 19 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span className="small-label">CURRENT STREAK</span><Sparkles size={16} color="#98734c" /></div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><span className="small-label">CURRENT STREAK</span><Sparkles size={16} color="var(--brand-orange)" /></div>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 15 }}><span className="mono-value" style={{ fontSize: 33 }} data-testid="value-streak">{streak}</span><span className="subtle" style={{ fontSize: 12 }}>{streak === 1 ? 'day' : 'days'}</span></div>
         <div className="subtle" style={{ fontSize: 11, marginTop: 9 }} data-testid="text-total-sessions">{data.sessions.length} workouts · {lifetimeReps} total reps</div>
       </div>
@@ -128,20 +128,20 @@ function Dashboard({ data }: { data: AppData }) {
     <section style={{ marginTop: 37 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 13 }}>
         <div><div className="eyebrow">KEEP IT SIMPLE</div><h2 className="font-display" style={{ margin: '5px 0 0', fontSize: 24 }}>Your recent work</h2></div>
-        {data.sessions.length > 0 && <Link href="/history" style={{ color: '#536d62', fontSize: 12, fontWeight: 800, textDecoration: 'none' }} data-testid="link-see-history">All history <ArrowRight size={13} style={{ verticalAlign: 'middle' }} /></Link>}
+        {data.sessions.length > 0 && <Link href="/history" style={{ color: 'var(--brand-black)', fontSize: 12, fontWeight: 800, textDecoration: 'none' }} data-testid="link-see-history">All history <ArrowRight size={13} style={{ verticalAlign: 'middle' }} /></Link>}
       </div>
       {data.sessions.length === 0 ? <div className="panel" style={{ padding: '22px 19px', display: 'flex', alignItems: 'center', gap: 15 }}>
-        <div style={{ width: 43, height: 43, borderRadius: 14, background: '#e8e4d9', display: 'grid', placeItems: 'center', color: '#6a796f' }}><Activity size={19} /></div>
+        <div style={{ width: 43, height: 43, borderRadius: 14, background: 'var(--brand-lime)', display: 'grid', placeItems: 'center', color: 'var(--brand-black)' }}><Activity size={19} /></div>
         <div><div style={{ fontSize: 13, fontWeight: 800 }}>A clean slate. No invented numbers.</div><div className="subtle" style={{ fontSize: 12, marginTop: 4 }}>Your first saved session will show up here.</div></div>
       </div> : <div style={{ display: 'grid', gap: 9 }}>{data.sessions.slice(0, 3).map((s) => <SessionRow key={s.id} session={s} />)}</div>}
     </section>
-    <div style={{ marginTop: 27, padding: '13px 15px', borderLeft: '2px solid #d49b5d', color: '#66746d', fontSize: 12, lineHeight: 1.6 }}>A rep only counts when you do it. The camera helps you keep an honest count; your video stays on this device.</div>
+    <div style={{ marginTop: 27, padding: '13px 15px', borderLeft: '2px solid var(--brand-orange)', color: 'rgba(0,0,0,.7)', fontSize: 12, lineHeight: 1.6 }}>A rep only counts when you do it. The camera helps you keep an honest count; your video stays on this device.</div>
   </main>;
 }
 
 function SessionRow({ session }: { session: WorkoutSession }) {
   return <div className="panel" data-testid={`row-session-${session.id}`} style={{ padding: '15px 17px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}><div style={{ width: 38, height: 38, background: '#e9e5db', borderRadius: 12, display: 'grid', placeItems: 'center', color: '#355a4c' }}><Dumbbell size={17} /></div><div><div style={{ fontSize: 13, fontWeight: 800 }}>{prettyExercise(session.exercise)}</div><div className="subtle" style={{ fontSize: 11, marginTop: 3 }}>{fmtDate(session.startedAt)} · {formatDuration(session.durationSeconds)}</div></div></div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}><div style={{ width: 38, height: 38, background: 'var(--brand-lime)', borderRadius: 12, display: 'grid', placeItems: 'center', color: 'var(--brand-black)' }}><Dumbbell size={17} /></div><div><div style={{ fontSize: 13, fontWeight: 800 }}>{prettyExercise(session.exercise)}</div><div className="subtle" style={{ fontSize: 11, marginTop: 3 }}>{fmtDate(session.startedAt)} · {formatDuration(session.durationSeconds)}</div></div></div>
     <div style={{ textAlign: 'right' }}><span className="mono-value" style={{ fontSize: 20 }}>{session.reps}</span><div className="small-label" style={{ fontSize: 8 }}>REPS</div></div>
   </div>;
 }
@@ -162,21 +162,21 @@ function HistoryPage({ sessions, goal }: { sessions: WorkoutSession[]; goal: num
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 5, marginTop: 22 }}>
         {dayData.map(({ date, count }) => <div key={date.toISOString()} style={{ textAlign: 'center' }} data-testid={`day-activity-${date.getDay()}`}>
           <div className="small-label" style={{ fontSize: 8 }}>{date.toLocaleDateString(undefined, { weekday: 'short' }).slice(0, 2).toUpperCase()}</div>
-          <div style={{ height: 38, borderRadius: 10, background: count ? '#254d42' : '#ebe8df', margin: '7px 0', color: count ? '#f3bd76' : '#a5aaa3', display: 'grid', placeItems: 'center' }}>{count ? <Check size={15} /> : <span style={{ fontSize: 11 }}>·</span>}</div>
-          <div className="mono-value" style={{ fontSize: 9, color: '#718078' }}>{date.getDate()}</div>
+          <div style={{ height: 38, borderRadius: 10, background: count ? 'var(--brand-lime)' : 'var(--brand-white)', border: '1px solid rgba(0,0,0,.12)', margin: '7px 0', color: 'var(--brand-black)', display: 'grid', placeItems: 'center' }}>{count ? <Check size={15} /> : <span style={{ fontSize: 11 }}>·</span>}</div>
+          <div className="mono-value" style={{ fontSize: 9, color: 'rgba(0,0,0,.6)' }}>{date.getDate()}</div>
         </div>)}
       </div>
-      <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid #e7e2d7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(0,0,0,.14)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span className="subtle" style={{ fontSize: 12 }} data-testid="text-weekly-total">{list.length} of {goal} workouts this week</span>
-        <div style={{ display: 'flex', gap: 4 }}>{Array.from({ length: goal }, (_, i) => <span key={i} style={{ width: 15, height: 5, borderRadius: 4, background: i < list.length ? '#d9a05e' : '#e4dfd4' }} />)}</div>
+        <div style={{ display: 'flex', gap: 4 }}>{Array.from({ length: goal }, (_, i) => <span key={i} style={{ width: 15, height: 5, borderRadius: 4, background: i < list.length ? 'var(--brand-orange)' : 'rgba(0,0,0,.14)' }} />)}</div>
       </div>
     </section>
     <section style={{ marginTop: 32 }}>
       <div className="eyebrow">SESSION LOG</div><h2 className="font-display" style={{ fontSize: 27, margin: '6px 0 15px' }}>{offset === 0 ? 'This week' : 'Selected week'}</h2>
       {list.length ? <div style={{ display: 'grid', gap: 9 }}>{list.map((s) => <SessionRow session={s} key={s.id} />)}</div> :
-        <div className="panel" style={{ padding: '27px 20px', textAlign: 'center' }}><div style={{ width: 48, height: 48, margin: '0 auto 13px', borderRadius: 16, background: '#e9e5db', color: '#63796e', display: 'grid', placeItems: 'center' }}><History size={20} /></div><div style={{ fontWeight: 800, fontSize: 14 }} data-testid="empty-history-title">{offset > 0 ? 'That week is still blank.' : 'No sessions logged this week.'}</div><p className="subtle" style={{ fontSize: 12, margin: '7px 0 16px' }}>No pressure to backfill. Start where you are.</p><Link href="/session" className="secondary-btn" data-testid="button-history-start">Start a session <ArrowRight size={14} /></Link></div>}
+        <div className="panel" style={{ padding: '27px 20px', textAlign: 'center' }}><div style={{ width: 48, height: 48, margin: '0 auto 13px', borderRadius: 16, background: 'var(--brand-lime)', color: 'var(--brand-black)', display: 'grid', placeItems: 'center' }}><History size={20} /></div><div style={{ fontWeight: 800, fontSize: 14 }} data-testid="empty-history-title">{offset > 0 ? 'That week is still blank.' : 'No sessions logged this week.'}</div><p className="subtle" style={{ fontSize: 12, margin: '7px 0 16px' }}>No pressure to backfill. Start where you are.</p><Link href="/session" className="secondary-btn" data-testid="button-history-start">Start a session <ArrowRight size={14} /></Link></div>}
     </section>
-    {sessions.length > 0 && <div style={{ marginTop: 29, display: 'flex', alignItems: 'center', gap: 8, color: '#718078', fontSize: 11 }}><ShieldCheck size={14} /> These records are stored only in this browser.</div>}
+    {sessions.length > 0 && <div style={{ marginTop: 29, display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(0,0,0,.62)', fontSize: 11 }}><ShieldCheck size={14} /> These records are stored only in this browser.</div>}
   </main>;
 }
 
@@ -189,7 +189,7 @@ function SettingsPage({ data, setGoal, clear }: { data: AppData; setGoal: (n: nu
   return <main className="page-wrap enter">
     <div className="eyebrow">YOUR PRACTICE, YOUR RULES</div><h1 className="page-title">Set the terms.</h1><p className="subtle" style={{ fontSize: 13, marginTop: 12 }}>Keep the goal realistic enough to repeat.</p>
     <section className="panel" style={{ padding: 21, marginTop: 29 }}>
-      <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}><div style={{ width: 38, height: 38, background: '#e9e5db', color: '#355a4c', borderRadius: 12, display: 'grid', placeItems: 'center' }}><Target size={18} /></div><div style={{ flex: 1 }}><div style={{ fontWeight: 800, fontSize: 14 }}>Weekly workout target</div><p className="subtle" style={{ fontSize: 12, margin: '5px 0 17px', lineHeight: 1.6 }}>How many days do you want to show up? You can change this whenever life changes.</p>
+      <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}><div style={{ width: 38, height: 38, background: 'var(--brand-lime)', color: 'var(--brand-black)', borderRadius: 12, display: 'grid', placeItems: 'center' }}><Target size={18} /></div><div style={{ flex: 1 }}><div style={{ fontWeight: 800, fontSize: 14 }}>Weekly workout target</div><p className="subtle" style={{ fontSize: 12, margin: '5px 0 17px', lineHeight: 1.6 }}>How many days do you want to show up? You can change this whenever life changes.</p>
         <label htmlFor="weekly-goal" className="small-label">SESSIONS PER WEEK</label>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 8 }}><select id="weekly-goal" className="field" value={data.weeklyWorkoutGoal} onChange={(e) => setGoal(Number(e.target.value))} data-testid="select-weekly-goal" style={{ maxWidth: 130 }}>
           {[1,2,3,4,5,6,7].map((n) => <option value={n} key={n}>{n} {n === 1 ? 'day' : 'days'}</option>)}
@@ -197,15 +197,15 @@ function SettingsPage({ data, setGoal, clear }: { data: AppData; setGoal: (n: nu
       </div></div>
     </section>
     <section className="panel" style={{ padding: 21, marginTop: 13 }}>
-      <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}><div style={{ width: 38, height: 38, background: '#e9e5db', color: '#355a4c', borderRadius: 12, display: 'grid', placeItems: 'center' }}><LockKeyhole size={17} /></div><div><div style={{ fontWeight: 800, fontSize: 14 }}>Camera privacy</div><p className="subtle" style={{ fontSize: 12, lineHeight: 1.65, margin: '7px 0 13px' }}>Camera video is processed on this device for rep counting. It is never uploaded or saved. A session log stores only the exercise, rep count, start time and duration in this browser.</p><div style={{ display: 'flex', alignItems: 'center', gap: 7, color: '#456b5a', fontSize: 11, fontWeight: 800 }}><ShieldCheck size={14} /> On-device by design</div></div></div>
+      <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}><div style={{ width: 38, height: 38, background: 'var(--brand-lime)', color: 'var(--brand-black)', borderRadius: 12, display: 'grid', placeItems: 'center' }}><LockKeyhole size={17} /></div><div><div style={{ fontWeight: 800, fontSize: 14 }}>Camera privacy</div><p className="subtle" style={{ fontSize: 12, lineHeight: 1.65, margin: '7px 0 13px' }}>Camera video is processed on this device for rep counting. It is never uploaded or saved. A session log stores only the exercise, rep count, start time and duration in this browser.</p><div style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--brand-black)', fontSize: 11, fontWeight: 800 }}><ShieldCheck size={14} /> On-device by design</div></div></div>
     </section>
-    <section className="panel" style={{ padding: 21, marginTop: 13, borderColor: clearing ? '#d9a49b' : undefined }}>
-      <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}><div style={{ width: 38, height: 38, background: '#f2e5e1', color: '#9a4c3f', borderRadius: 12, display: 'grid', placeItems: 'center' }}><Trash2 size={17} /></div><div style={{ flex: 1 }}><div style={{ fontWeight: 800, fontSize: 14 }}>Clear workout history</div><p className="subtle" style={{ fontSize: 12, margin: '6px 0 14px', lineHeight: 1.6 }}>{clearing ? 'This permanently removes all saved sessions from this browser. Your weekly target stays.' : `${data.sessions.length} saved session${data.sessions.length === 1 ? '' : 's'} currently stored here.`}</p>
+    <section className="panel" style={{ padding: 21, marginTop: 13, borderColor: clearing ? 'var(--brand-orange)' : undefined }}>
+      <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}><div style={{ width: 38, height: 38, background: 'var(--brand-orange)', color: 'var(--brand-black)', borderRadius: 12, display: 'grid', placeItems: 'center' }}><Trash2 size={17} /></div><div style={{ flex: 1 }}><div style={{ fontWeight: 800, fontSize: 14 }}>Clear workout history</div><p className="subtle" style={{ fontSize: 12, margin: '6px 0 14px', lineHeight: 1.6 }}>{clearing ? 'This permanently removes all saved sessions from this browser. Your weekly target stays.' : `${data.sessions.length} saved session${data.sessions.length === 1 ? '' : 's'} currently stored here.`}</p>
         {clearing ? <div style={{ display: 'flex', gap: 8 }}><button className="secondary-btn" onClick={() => setClearing(false)} data-testid="button-cancel-clear">Keep my history</button><button className="secondary-btn danger-btn" onClick={confirmClear} data-testid="button-confirm-clear">Clear sessions</button></div> :
           <button className="secondary-btn danger-btn" onClick={confirmClear} data-testid="button-clear-history" disabled={data.sessions.length === 0}><Trash2 size={14} /> Clear local history</button>}
       </div></div>
     </section>
-    <div style={{ marginTop: 25, color: '#7b8981', fontSize: 11, display: 'flex', gap: 7, alignItems: 'center' }}><CircleHelp size={14} /> Your data stays on this device unless you clear browser storage.</div>
+    <div style={{ marginTop: 25, color: 'rgba(0,0,0,.62)', fontSize: 11, display: 'flex', gap: 7, alignItems: 'center' }}><CircleHelp size={14} /> Your data stays on this device unless you clear browser storage.</div>
   </main>;
 }
 
@@ -382,14 +382,14 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
       {cameraState !== 'ready' && <div className="camera-idle">
         <div className="camera-idle-mark">{cameraState === 'error' ? <CameraOff size={26} /> : cameraState === 'loading' ? <Activity size={26} /> : <Video size={26} />}</div>
         <div className="font-display" style={{ fontSize: 22 }}>{cameraState === 'error' ? 'We couldn’t get you on camera.' : cameraState === 'loading' ? 'Getting your session ready…' : 'A clear side view works best.'}</div>
-        <div style={{ color: '#c8d1cb', fontSize: 11, maxWidth: 310, lineHeight: 1.6, marginTop: 8 }}>{cameraState === 'idle' ? `Choose ${exercise === 'squat' ? 'squats' : 'bicep curls'}, then allow camera access. Your view and pose landmarks stay on this device.` : cameraState === 'loading' ? 'Loading the pose model and requesting camera permission.' : error}</div>
-        {cameraState === 'idle' && <button onClick={() => void begin()} className="primary-btn" data-testid="button-enable-camera" style={{ marginTop: 18, background: '#eab56f', color: '#203832' }}><Camera size={16} /> Allow camera & begin</button>}
+        <div style={{ color: 'rgba(255,255,255,.76)', fontSize: 11, maxWidth: 310, lineHeight: 1.6, marginTop: 8 }}>{cameraState === 'idle' ? `Choose ${exercise === 'squat' ? 'squats' : 'bicep curls'}, then allow camera access. Your view and pose landmarks stay on this device.` : cameraState === 'loading' ? 'Loading the pose model and requesting camera permission.' : error}</div>
+        {cameraState === 'idle' && <button onClick={() => void begin()} className="primary-btn" data-testid="button-enable-camera" style={{ marginTop: 18, background: 'var(--brand-lime)', color: 'var(--brand-black)' }}><Camera size={16} /> Allow camera & begin</button>}
         {cameraState === 'error' && <button onClick={() => void begin(facing, startRef.current !== null)} className="primary-btn" data-testid="button-retry-camera" style={{ marginTop: 16 }}><RotateCcw size={15} /> Try again</button>}
       </div>}
-      {cameraState === 'ready' && <><div className="camera-overlay" /><div className="camera-pill"><span className="live-dot" /> CAMERA LIVE · LOCAL ONLY</div><div className="session-controls"><button className="camera-control" onClick={() => void switchCamera()} title="Switch camera" aria-label="Switch camera" data-testid="button-switch-camera"><RotateCcw size={16} /></button></div><div style={{ position: 'absolute', left: 15, bottom: 14, color: '#fff', fontSize: 11 }} data-testid="status-pose">{phase}</div></>}
-      {cameraState !== 'ready' && <div className="camera-pill"><span className="live-dot" style={{ background: cameraState === 'error' ? '#d87b6c' : '#efb66a' }} />{cameraState === 'error' ? 'CAMERA OFFLINE' : modelState === 'loading' ? 'PREPARING MODEL' : 'CAMERA NOT STARTED'}</div>}
+      {cameraState === 'ready' && <><div className="camera-overlay" /><div className="camera-pill"><span className="live-dot" /> CAMERA LIVE · LOCAL ONLY</div><div className="session-controls"><button className="camera-control" onClick={() => void switchCamera()} title="Switch camera" aria-label="Switch camera" data-testid="button-switch-camera"><RotateCcw size={16} /></button></div><div style={{ position: 'absolute', left: 15, bottom: 14, color: 'var(--brand-white)', fontSize: 11 }} data-testid="status-pose">{phase}</div></>}
+      {cameraState !== 'ready' && <div className="camera-pill"><span className="live-dot" style={{ background: cameraState === 'error' ? 'var(--brand-orange)' : 'var(--brand-lime)' }} />{cameraState === 'error' ? 'CAMERA OFFLINE' : modelState === 'loading' ? 'PREPARING MODEL' : 'CAMERA NOT STARTED'}</div>}
     </div>
-    {error && cameraState === 'error' && <div role="alert" data-testid="status-camera-error" style={{ marginTop: 10, color: '#923f35', background: '#f5e9e5', border: '1px solid #e9d0c9', padding: '12px 14px', borderRadius: 11, fontSize: 12, lineHeight: 1.5 }}>{error}</div>}
+    {error && cameraState === 'error' && <div role="alert" data-testid="status-camera-error" style={{ marginTop: 10, color: 'var(--brand-black)', background: 'var(--brand-orange)', border: '1px solid var(--brand-black)', padding: '12px 14px', borderRadius: 11, fontSize: 12, lineHeight: 1.5 }}>{error}</div>}
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 13 }}>
       <div className="panel" style={{ padding: 17 }}><div className="small-label">REPS COUNTED</div><div className="mono-value" style={{ fontSize: 43, lineHeight: 1.15, marginTop: 5 }} data-testid="value-live-reps">{reps}</div></div>
       <div className="panel" style={{ padding: 17 }}><div className="small-label">MOVEMENT PHASE</div><div style={{ fontWeight: 800, fontSize: 15, marginTop: 12, minHeight: 22 }} data-testid="status-movement-phase">{phase}</div><div className="subtle" style={{ fontSize: 10, marginTop: 5 }} data-testid="status-model">{modelState === 'ready' ? 'Pose tracking is running locally' : modelState === 'error' ? 'Pose model unavailable' : modelState === 'loading' ? 'Loading pose model…' : 'Waiting for camera permission'}</div></div>
@@ -397,11 +397,11 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
     <div className="panel" style={{ padding: 18, marginTop: 13 }}>
       <div className="small-label">WHAT COUNTS AS A REP</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-        {(exercise === 'squat' ? ['Stand tall', 'Lower with control', 'Stand tall again'] : ['Arm extended', 'Curl up', 'Extend again']).map((label, i) => <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 22, height: 22, borderRadius: 8, background: i === 1 ? '#f2e5d4' : '#e8ece6', color: i === 1 ? '#9b6c39' : '#446655', display: 'grid', placeItems: 'center', font: '10px var(--app-font-mono)' }}>{i + 1}</span><span style={{ fontSize: 10, fontWeight: 700 }}>{label}</span>{i < 2 && <ArrowRight size={12} color="#9aa49d" />}</div>)}
+        {(exercise === 'squat' ? ['Stand tall', 'Lower with control', 'Stand tall again'] : ['Arm extended', 'Curl up', 'Extend again']).map((label, i) => <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 22, height: 22, borderRadius: 8, background: i === 1 ? 'var(--brand-lime)' : 'var(--brand-white)', border: '1px solid rgba(0,0,0,.14)', color: 'var(--brand-black)', display: 'grid', placeItems: 'center', font: '10px var(--app-font-mono)' }}>{i + 1}</span><span style={{ fontSize: 10, fontWeight: 700 }}>{label}</span>{i < 2 && <ArrowRight size={12} color="var(--brand-orange)" />}</div>)}
       </div>
     </div>
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 14, color: '#718078', fontSize: 10, lineHeight: 1.55 }}><LockKeyhole size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Camera permission is required. Your camera video is never uploaded; pose tracking runs on-device. Camera access requires HTTPS or localhost. The model loads from the web on first use.</div>
-    <button className="primary-btn" onClick={finish} disabled={(cameraState !== 'ready' && reps === 0) || saving} data-testid="button-end-save-session" style={{ width: '100%', marginTop: 20, background: reps > 0 ? '#254d42' : '#d8d9d2', color: reps > 0 ? '#f7f2e8' : '#65736c' }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 14, color: 'rgba(255,255,255,.74)', fontSize: 10, lineHeight: 1.55 }}><LockKeyhole size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Camera permission is required. Your camera video is never uploaded; pose tracking runs on-device. Camera access requires HTTPS or localhost. The model loads from the web on first use.</div>
+    <button className="primary-btn" onClick={finish} disabled={(cameraState !== 'ready' && reps === 0) || saving} data-testid="button-end-save-session" style={{ width: '100%', marginTop: 20, background: reps > 0 ? 'var(--brand-black)' : 'var(--brand-white)', color: reps > 0 ? 'var(--brand-white)' : 'var(--brand-black)' }}>
       {reps > 0 ? <><Check size={16} /> End & save {reps} {reps === 1 ? 'rep' : 'reps'}</> : <><X size={16} /> End session · no reps to save</>}
     </button>
     <div className="subtle" style={{ textAlign: 'center', fontSize: 10, marginTop: 9 }}>{cameraState !== 'ready' ? 'Start the camera to begin a session.' : reps > 0 ? 'Your workout is saved only when you end this session.' : 'Sessions with zero reps are not added to your history.'}</div>

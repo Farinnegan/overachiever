@@ -31,6 +31,7 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 - The first version is browser-only with local workout storage, not account-based or cross-device.
 - Camera video and pose inference stay on-device. Never add camera uploads without explicit user consent.
 - Camera access requires a secure browser context. MediaPipe model and WASM assets require internet access when loading.
+- Use the user's supplied palette throughout: white `#FFFFFF`, black `#000000`, lime `#D4FF00`, and pumpkin orange `#FF6600`.
 
 ## Product
 
