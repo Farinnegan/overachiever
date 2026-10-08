@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: rep-training
+    description: Opt-in, anonymous pose-landmark examples for improving repetition counting
 paths:
   /healthz:
     get:
@@ -24,6 +26,75 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /rep-training/examples:
+    get:
+      operationId: listRepTrainingExamples
+      tags: [rep-training]
+      summary: List this contributor's own training examples
+      parameters:
+        - name: X-Contributor-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: The examples associated with this anonymous device token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepTrainingExamplesResponse"
+        "400":
+          description: Invalid contributor token
+    post:
+      operationId: createRepTrainingExample
+      tags: [rep-training]
+      summary: Save one explicitly labeled pose sequence
+      parameters:
+        - name: X-Contributor-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RepTrainingExampleInput"
+      responses:
+        "201":
+          description: Example accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepTrainingExampleReceipt"
+        "400":
+          description: Invalid contribution
+        "429":
+          description: The contributor has reached the storage limit
+    delete:
+      operationId: deleteRepTrainingExamples
+      tags: [rep-training]
+      summary: Delete this contributor's previously shared examples
+      parameters:
+        - name: X-Contributor-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: All examples associated with this token were deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteRepTrainingExamplesResponse"
+        "400":
+          description: Invalid contributor token
 components:
   schemas:
     HealthStatus:
@@ -33,4 +104,109 @@ components:
           type: string
       required:
         - status
+    RepTrainingLandmark:
+      type: object
+      additionalProperties: false
+      properties:
+        index:
+          type: integer
+          enum: [11, 12, 13, 14, 15, 16, 23, 24, 25, 26, 27, 28]
+        x:
+          type: number
+          minimum: 0
+          maximum: 1
+        y:
+          type: number
+          minimum: 0
+          maximum: 1
+        visibility:
+          type: number
+          minimum: 0
+          maximum: 1
+      required: [index, x, y, visibility]
+    RepTrainingPoseFrame:
+      type: object
+      additionalProperties: false
+      properties:
+        offsetMs:
+          type: integer
+          minimum: 0
+          maximum: 12000
+        phase:
+          type: string
+          enum: [stand, lower, bottom, return]
+        landmarks:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            $ref: "#/components/schemas/RepTrainingLandmark"
+      required: [offsetMs, phase, landmarks]
+    RepTrainingExampleInput:
+      type: object
+      additionalProperties: false
+      properties:
+        exercise:
+          type: string
+          enum: [squat, bicep-curl]
+        label:
+          type: string
+          enum: [correct, incorrect]
+        consent:
+          type: boolean
+          enum: [true]
+        frames:
+          type: array
+          minItems: 3
+          maxItems: 40
+          items:
+            $ref: "#/components/schemas/RepTrainingPoseFrame"
+      required: [exercise, label, consent, frames]
+    RepTrainingExample:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        exercise:
+          type: string
+          enum: [squat, bicep-curl]
+        label:
+          type: string
+          enum: [correct, incorrect]
+        frames:
+          type: array
+          items:
+            $ref: "#/components/schemas/RepTrainingPoseFrame"
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, exercise, label, frames, createdAt]
+    RepTrainingExamplesResponse:
+      type: object
+      properties:
+        examples:
+          type: array
+          items:
+            $ref: "#/components/schemas/RepTrainingExample"
+        limit:
+          type: integer
+        remaining:
+          type: integer
+      required: [examples, limit, remaining]
+    RepTrainingExampleReceipt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        accepted:
+          type: boolean
+      required: [id, accepted]
+    DeleteRepTrainingExamplesResponse:
+      type: object
+      properties:
+        deletedCount:
+          type: integer
+      required: [deletedCount]
 
