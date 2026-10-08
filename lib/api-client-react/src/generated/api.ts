@@ -20,8 +20,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
-  DeleteRepTrainingExamplesResponse,
   HealthStatus,
+  RepTrainingDeleteReceipt,
   RepTrainingExampleInput,
   RepTrainingExampleReceipt,
   RepTrainingExamplesResponse
@@ -308,9 +308,9 @@ export const getDeleteRepTrainingExamplesUrl = () => {
 /**
  * @summary Delete this contributor's previously shared examples
  */
-export const deleteRepTrainingExamples = async ( options?: Parameters<typeof customFetch>[1]): Promise<DeleteRepTrainingExamplesResponse> => {
+export const deleteRepTrainingExamples = async ( options?: Parameters<typeof customFetch>[1]): Promise<RepTrainingDeleteReceipt> => {
 
-  return customFetch<DeleteRepTrainingExamplesResponse>(getDeleteRepTrainingExamplesUrl(),
+  return customFetch<RepTrainingDeleteReceipt>(getDeleteRepTrainingExamplesUrl(),
   {
     ...options,
     method: 'DELETE'

@@ -7,12 +7,15 @@
  */
 import type { RepTrainingExampleExercise } from './repTrainingExampleExercise';
 import type { RepTrainingExampleLabel } from './repTrainingExampleLabel';
+import type { RepTrainingExampleSource } from './repTrainingExampleSource';
 import type { RepTrainingPoseFrame } from './repTrainingPoseFrame';
 
 export interface RepTrainingExample {
   id: string;
   exercise: RepTrainingExampleExercise;
   label: RepTrainingExampleLabel;
+  aspectRatio: number;
+  source: RepTrainingExampleSource;
   frames: RepTrainingPoseFrame[];
   createdAt: Date;
 }

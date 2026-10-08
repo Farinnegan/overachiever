@@ -29,6 +29,9 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 ## Architecture decisions
 
 - The first version is browser-only with local workout storage, not account-based or cross-device.
+- This is a personal, single-user app. Training-data contribution is optional and off by default; enabled users explicitly label each sample before upload.
+- Contributed samples store only six exercise-specific joints, visibility, movement phases, aspect ratio and count feedback. They are a dataset for future tracker improvement, not automatic retraining.
+- Export/delete ownership uses a random browser key whose hash is stored server-side; clearing browser storage loses access to previously shared samples. Never put this key in URLs or logs.
 - Camera video and pose inference stay on-device. Never add camera uploads without explicit user consent.
 - Camera access requires a secure browser context. MediaPipe model and WASM assets require internet access when loading.
 - Use the user's supplied palette throughout: white `#FFFFFF`, black `#000000`, lime `#D4FF00`, and pumpkin orange `#FF6600`.

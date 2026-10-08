@@ -1,0 +1,1 @@
+- [Generated API naming](generated-api-naming.md) — response component names must not collide with operation-derived Zod exports.

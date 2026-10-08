@@ -86,10 +86,24 @@ export const RepTrainingExampleInputLabel = {
   incorrect: 'incorrect',
 } as const;
 
+export type RepTrainingExampleInputSource = typeof RepTrainingExampleInputSource[keyof typeof RepTrainingExampleInputSource];
+
+
+export const RepTrainingExampleInputSource = {
+  counted: 'counted',
+  missed: 'missed',
+} as const;
+
 export interface RepTrainingExampleInput {
   exercise: RepTrainingExampleInputExercise;
   label: RepTrainingExampleInputLabel;
   consent: true;
+  source: RepTrainingExampleInputSource;
+  /**
+     * @minimum 0.2
+     * @maximum 5
+     */
+  aspectRatio: number;
   /**
      * @minItems 3
      * @maxItems 40
@@ -113,10 +127,20 @@ export const RepTrainingExampleLabel = {
   incorrect: 'incorrect',
 } as const;
 
+export type RepTrainingExampleSource = typeof RepTrainingExampleSource[keyof typeof RepTrainingExampleSource];
+
+
+export const RepTrainingExampleSource = {
+  counted: 'counted',
+  missed: 'missed',
+} as const;
+
 export interface RepTrainingExample {
   id: string;
   exercise: RepTrainingExampleExercise;
   label: RepTrainingExampleLabel;
+  aspectRatio: number;
+  source: RepTrainingExampleSource;
   frames: RepTrainingPoseFrame[];
   createdAt: string;
 }
@@ -132,7 +156,7 @@ export interface RepTrainingExampleReceipt {
   accepted: boolean;
 }
 
-export interface DeleteRepTrainingExamplesResponse {
+export interface RepTrainingDeleteReceipt {
   deletedCount: number;
 }
 

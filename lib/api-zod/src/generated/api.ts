@@ -46,6 +46,8 @@ export const ListRepTrainingExamplesResponse = zod.object({
   "id": zod.string().uuid(),
   "exercise": zod.enum(['squat', 'bicep-curl']),
   "label": zod.enum(['correct', 'incorrect']),
+  "aspectRatio": zod.number(),
+  "source": zod.enum(['counted', 'missed']),
   "frames": zod.array(zod.object({
   "offsetMs": zod.number().int().min(listRepTrainingExamplesResponseExamplesItemFramesItemOffsetMsMin).max(listRepTrainingExamplesResponseExamplesItemFramesItemOffsetMsMax),
   "phase": zod.enum(['stand', 'lower', 'bottom', 'return']),
@@ -69,6 +71,9 @@ export const ListRepTrainingExamplesResponse = zod.object({
 export const CreateRepTrainingExampleHeader = zod.object({
   "X-Contributor-Token": zod.string().uuid()
 })
+
+export const createRepTrainingExampleBodyAspectRatioMin = 0.2;
+export const createRepTrainingExampleBodyAspectRatioMax = 5;
 
 export const createRepTrainingExampleBodyFramesItemOffsetMsMin = 0;
 export const createRepTrainingExampleBodyFramesItemOffsetMsMax = 12000;
@@ -94,6 +99,8 @@ export const CreateRepTrainingExampleBody = zod.object({
   "exercise": zod.enum(['squat', 'bicep-curl']),
   "label": zod.enum(['correct', 'incorrect']),
   "consent": zod.literal(true),
+  "source": zod.enum(['counted', 'missed']),
+  "aspectRatio": zod.number().min(createRepTrainingExampleBodyAspectRatioMin).max(createRepTrainingExampleBodyAspectRatioMax),
   "frames": zod.array(zod.object({
   "offsetMs": zod.number().int().min(createRepTrainingExampleBodyFramesItemOffsetMsMin).max(createRepTrainingExampleBodyFramesItemOffsetMsMax),
   "phase": zod.enum(['stand', 'lower', 'bottom', 'return']),

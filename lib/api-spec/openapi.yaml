@@ -92,7 +92,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DeleteRepTrainingExamplesResponse"
+                $ref: "#/components/schemas/RepTrainingDeleteReceipt"
         "400":
           description: Invalid contributor token
 components:
@@ -155,13 +155,20 @@ components:
         consent:
           type: boolean
           enum: [true]
+        source:
+          type: string
+          enum: [counted, missed]
+        aspectRatio:
+          type: number
+          minimum: 0.2
+          maximum: 5
         frames:
           type: array
           minItems: 3
           maxItems: 40
           items:
             $ref: "#/components/schemas/RepTrainingPoseFrame"
-      required: [exercise, label, consent, frames]
+      required: [exercise, label, consent, source, aspectRatio, frames]
     RepTrainingExample:
       type: object
       properties:
@@ -174,6 +181,11 @@ components:
         label:
           type: string
           enum: [correct, incorrect]
+        aspectRatio:
+          type: number
+        source:
+          type: string
+          enum: [counted, missed]
         frames:
           type: array
           items:
@@ -181,7 +193,7 @@ components:
         createdAt:
           type: string
           format: date-time
-      required: [id, exercise, label, frames, createdAt]
+      required: [id, exercise, label, source, aspectRatio, frames, createdAt]
     RepTrainingExamplesResponse:
       type: object
       properties:
@@ -203,7 +215,7 @@ components:
         accepted:
           type: boolean
       required: [id, accepted]
-    DeleteRepTrainingExamplesResponse:
+    RepTrainingDeleteReceipt:
       type: object
       properties:
         deletedCount:

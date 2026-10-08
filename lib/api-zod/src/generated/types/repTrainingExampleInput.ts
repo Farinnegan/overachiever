@@ -7,12 +7,19 @@
  */
 import type { RepTrainingExampleInputExercise } from './repTrainingExampleInputExercise';
 import type { RepTrainingExampleInputLabel } from './repTrainingExampleInputLabel';
+import type { RepTrainingExampleInputSource } from './repTrainingExampleInputSource';
 import type { RepTrainingPoseFrame } from './repTrainingPoseFrame';
 
 export interface RepTrainingExampleInput {
   exercise: RepTrainingExampleInputExercise;
   label: RepTrainingExampleInputLabel;
   consent: true;
+  source: RepTrainingExampleInputSource;
+  /**
+     * @minimum 0.2
+     * @maximum 5
+     */
+  aspectRatio: number;
   /**
      * @minItems 3
      * @maxItems 40

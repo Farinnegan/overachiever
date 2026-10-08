@@ -6,15 +6,17 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './deleteRepTrainingExamplesResponse';
 export * from './healthStatus';
+export * from './repTrainingDeleteReceipt';
 export * from './repTrainingExample';
 export * from './repTrainingExampleExercise';
 export * from './repTrainingExampleInput';
 export * from './repTrainingExampleInputExercise';
 export * from './repTrainingExampleInputLabel';
+export * from './repTrainingExampleInputSource';
 export * from './repTrainingExampleLabel';
 export * from './repTrainingExampleReceipt';
+export * from './repTrainingExampleSource';
 export * from './repTrainingExamplesResponse';
 export * from './repTrainingLandmark';
 export * from './repTrainingLandmarkIndex';
