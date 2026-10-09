@@ -31,7 +31,8 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 - The first version is browser-only with local workout storage, not account-based or cross-device.
 - This is a personal, single-user app. Training-data contribution is optional and off by default; enabled users explicitly label each sample before upload.
 - Contributed samples store only six exercise-specific joints, visibility, movement phases, aspect ratio and count feedback. They are a dataset for future tracker improvement, not automatic retraining.
-- Feedback should focus on missed counts, not judging whether counted reps were wrong. Ignore legacy `source=counted,label=incorrect` examples for analysis/training: the user said that label was clicked by mistake. Do not delete it without permission.
+- The user changed their mind and wants correct/incorrect tagging for counted reps restored, alongside missed-rep reporting. Labels concern counting accuracy, not exercise form.
+- The wrong-count tag from the user's initial test was accidental and remains excluded from analysis/training; this exclusion does not apply to later deliberately labeled incorrect counts. Do not delete the accidental sample without permission.
 - Export/delete ownership uses a random browser key whose hash is stored server-side; clearing browser storage loses access to previously shared samples. Never put this key in URLs or logs.
 - Pose inference stays on-device. Camera video stays local by default; the user explicitly requested a separate optional video-training mode for this personal app.
 - Video training is a separate, default-off switch. Record only manually started, silent clips up to 15 seconds/20MB; preview and explicitly upload each clip. Store bytes privately in App Storage, only paths/metadata in Postgres.

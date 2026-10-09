@@ -15,17 +15,18 @@ export function ReviewQueue({ canFlag, onFlagMissed }: Props) {
   const qc = useQueryClient();
   const create = useCreateRepTrainingExample({ request: contributorRequest(consent.token) });
   const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const [confirmWrongId, setConfirmWrongId] = useState<string | null>(null);
 
-  const upload = async (item: QueueItem) => {
+  const upload = async (item: QueueItem, label: 'correct' | 'incorrect') => {
     if (!consent.enabled || !consent.token) return;
-    const label = item.source === 'missed' ? 'incorrect' : 'correct';
     patchItem(item.id, { status: 'uploading', error: undefined });
     setNotice(null);
     try {
       const receipt = await create.mutateAsync({ data: { exercise: item.exercise, label, source: item.source === 'missed' ? 'missed' : 'counted', consent: true, aspectRatio: item.aspectRatio, frames: item.frames } });
       if (!receipt.accepted) throw new Error('The server did not accept this sample.');
       removeItem(item.id);
-      setNotice({ kind: 'ok', text: item.source === 'missed' ? 'Shared a missed-rep report. Joint coordinates only.' : 'Shared a counted-rep reference. Joint coordinates only.' });
+      setConfirmWrongId(null);
+      setNotice({ kind: 'ok', text: item.source === 'missed' ? 'Shared a missed-rep report. Joint coordinates only.' : label === 'correct' ? 'Shared a correctly counted rep. Joint coordinates only.' : 'Shared an incorrect count. Joint coordinates only.' });
       void qc.invalidateQueries({ queryKey: getListRepTrainingExamplesQueryKey() });
     } catch (e) {
       const msg = errorMessage(e);
@@ -37,7 +38,7 @@ export function ReviewQueue({ canFlag, onFlagMissed }: Props) {
   if (!consent.enabled) {
     return <div className="panel" style={{ padding: 17, marginTop: 13 }} data-testid="panel-contribution-off">
       <div className="small-label">TRAINING DATA · OFF</div>
-      <p className="subtle" style={{ fontSize: 12, lineHeight: 1.6, margin: '8px 0 12px' }}>Nothing is collected. You can choose to share labeled joint-coordinate samples from Settings.</p>
+      <p className="subtle" style={{ fontSize: 12, lineHeight: 1.6, margin: '8px 0 12px' }}>No pose samples are saved or shared. You can choose to share labeled joint-coordinate samples from Settings.</p>
       <Link href="/settings" className="secondary-btn" data-testid="link-contribution-settings">Review the option</Link>
     </div>;
   }
@@ -49,7 +50,7 @@ export function ReviewQueue({ canFlag, onFlagMissed }: Props) {
         <div style={{ fontWeight: 800, fontSize: 14, marginTop: 5 }} data-testid="text-queue-count">{queue.length} of {MAX_QUEUE} waiting for a label</div></div>
       <button className="secondary-btn" onClick={flag} disabled={!canFlag || full} data-testid="button-flag-missed"><Flag size={14} /> Flag a missed rep</button>
     </div>
-    <p className="subtle" style={{ fontSize: 11, lineHeight: 1.6, margin: '9px 0 0' }}>Focus on reps the counter misses: flag one immediately after it happens, replay the joints, then confirm it. Counted reps are optional reference samples—no wrong-rep tagging needed. Nothing uploads until you choose to share.</p>
+    <p className="subtle" style={{ fontSize: 11, lineHeight: 1.6, margin: '9px 0 0' }}>Replay a counted rep, then tag whether the count was correct or wrong. If you completed a rep but nothing counted, flag it immediately and confirm the missed rep. These labels judge counting accuracy, not exercise form. Nothing uploads until you choose to share.</p>
     {full && <div role="status" data-testid="status-queue-full" style={{ marginTop: 10, padding: '10px 12px', borderLeft: '3px solid var(--brand-orange)', fontSize: 12 }}>Sample collection is paused. Label or discard a sample to resume.</div>}
     {notice && <div role={notice.kind === 'err' ? 'alert' : 'status'} data-testid={`status-upload-${notice.kind}`} style={{ marginTop: 10, padding: '10px 12px', borderRadius: 10, fontSize: 12, background: notice.kind === 'err' ? 'var(--brand-orange)' : 'var(--brand-lime)', border: '1px solid var(--brand-black)' }}>{notice.text}</div>}
     {queue.length === 0 ? <div className="subtle" style={{ fontSize: 12, marginTop: 12 }} data-testid="empty-queue">No samples yet. Complete a rep and it will appear here.</div> :
@@ -62,9 +63,17 @@ export function ReviewQueue({ canFlag, onFlagMissed }: Props) {
           <PoseReplay sample={item} sampleId={item.id} />
           {item.error && <div role="alert" data-testid={`error-sample-${item.id}`} style={{ fontSize: 11, marginTop: 6 }}>Upload failed: {item.error} Tap share or confirm to retry.</div>}
           <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' }}>
-            <button className="primary-btn" disabled={busy} onClick={() => void upload(item)} data-testid={`${item.source === 'missed' ? 'button-confirm-missed' : 'button-share-reference'}-${item.id}`} style={{ padding: '9px 12px', fontSize: 11 }}><Check size={13} /> {item.source === 'missed' ? 'Confirm missed rep' : 'Share counted rep'}</button>
+            <button className="primary-btn" disabled={busy} onClick={() => void upload(item, item.source === 'missed' ? 'incorrect' : 'correct')} data-testid={`${item.source === 'missed' ? 'button-confirm-missed' : 'button-share-reference'}-${item.id}`} style={{ padding: '9px 12px', fontSize: 11 }}><Check size={13} /> {item.source === 'missed' ? 'Confirm missed rep' : 'Count was correct'}</button>
+            {item.source !== 'missed' && <button className="secondary-btn" disabled={busy} onClick={() => setConfirmWrongId(item.id)} data-testid={`button-count-wrong-${item.id}`} style={{ padding: '9px 12px', fontSize: 11, background: 'var(--brand-orange)' }}>Count was wrong</button>}
             <button className="secondary-btn" disabled={busy} onClick={() => removeItem(item.id)} data-testid={`button-discard-${item.id}`}><Trash2 size={13} /> {busy ? 'Sending…' : 'Discard'}</button>
           </div>
+          {confirmWrongId === item.id && item.source !== 'missed' && <div style={{ marginTop: 10, padding: 10, border: '1px solid var(--brand-orange)', borderRadius: 10, fontSize: 12 }} data-testid={`confirm-count-wrong-${item.id}`}>
+            The counter added a rep when it should not have. Share this as an incorrect count?
+            <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+              <button className="secondary-btn" disabled={busy} onClick={() => setConfirmWrongId(null)} data-testid={`button-cancel-wrong-${item.id}`}>Cancel</button>
+              <button className="secondary-btn" disabled={busy} onClick={() => void upload(item, 'incorrect')} data-testid={`button-confirm-wrong-${item.id}`} style={{ background: 'var(--brand-orange)' }}>{busy ? 'Sending…' : 'Share incorrect count'}</button>
+            </div>
+          </div>}
         </div>;
       })}</div>}
   </div>;
