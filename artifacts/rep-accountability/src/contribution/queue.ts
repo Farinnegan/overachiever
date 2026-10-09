@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import type { RepTrainingPoseFrame } from '@workspace/api-client-react';
 
 export const MAX_QUEUE = 12;
-export type ContribExercise = 'squat' | 'bicep-curl';
+export type ContribExercise = 'squat' | 'push-up';
 export type Sample = { exercise: ContribExercise; frames: RepTrainingPoseFrame[]; aspectRatio: number; source: 'rep' | 'missed' };
 export type QueueItem = Sample & { id: string; status: 'pending' | 'uploading' | 'error'; error?: string };
 

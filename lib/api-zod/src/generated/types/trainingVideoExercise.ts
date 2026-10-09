@@ -11,5 +11,6 @@ export type TrainingVideoExercise = typeof TrainingVideoExercise[keyof typeof Tr
 
 export const TrainingVideoExercise = {
   squat: 'squat',
+  'push-up': 'push-up',
   'bicep-curl': 'bicep-curl',
 } as const;

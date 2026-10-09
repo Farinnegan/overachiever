@@ -274,7 +274,7 @@ components:
       required: [consent, exercise, expectedReps, countedReps, placement, durationMs, size, contentType]
       properties:
         consent: { type: boolean, const: true }
-        exercise: { type: string, enum: [squat, bicep-curl] }
+        exercise: { type: string, enum: [squat, push-up] }
         expectedReps: { type: integer, minimum: 0, maximum: 100 }
         countedReps: { type: integer, minimum: 0, maximum: 100 }
         placement: { type: string, enum: [floor, body-level, other] }
@@ -286,7 +286,7 @@ components:
       required: [id, exercise, expectedReps, countedReps, placement, durationMs, size, contentType, ready, createdAt]
       properties:
         id: { type: string, format: uuid }
-        exercise: { type: string, enum: [squat, bicep-curl] }
+        exercise: { type: string, enum: [squat, push-up, bicep-curl] }
         expectedReps: { type: integer }
         countedReps: { type: integer }
         placement: { type: string, enum: [floor, body-level, other] }
@@ -346,7 +346,7 @@ components:
       properties:
         exercise:
           type: string
-          enum: [squat, bicep-curl]
+          enum: [squat, push-up]
         label:
           type: string
           enum: [correct, incorrect]
@@ -375,7 +375,7 @@ components:
           format: uuid
         exercise:
           type: string
-          enum: [squat, bicep-curl]
+          enum: [squat, push-up, bicep-curl]
         label:
           type: string
           enum: [correct, incorrect]

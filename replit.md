@@ -38,6 +38,9 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 - Video training is a separate, default-off switch. Record only manually started, silent clips up to 15 seconds/20MB; preview and explicitly upload each clip. Store bytes privately in App Storage, only paths/metadata in Postgres.
 - Replit Auth is required only for uploading/accessing clips, not workouts or local previews. Video ownership is account-based; pose contributions retain their existing anonymous browser-key ownership.
 - Video clips include camera placement and expected versus counted reps for investigating misses. Neither pose labels nor video uploads trigger automatic retraining.
+- Active exercises are squats and push-ups; the user explicitly replaced bicep curls. Keep past bicep-curl workout/training records readable, but do not offer it for new sessions or accept new curl uploads.
+- Counting uses a browser adaptation of Google's MediaPipe/ML Kit nearest-neighbor pose classifier, original 812-example fitness reference CSV, exponential smoothing, and up/down confidence hysteresis. Require up→down→up completion and reset on tracking loss. This is reference-based classification, not automatic personal-data retraining.
+- Preserve Google Apache-2.0 attribution and the unmodified reference CSV. Classifier inference uses full landmarks locally; pose contributions still store only the six exercise joints and no face coordinates.
 - Camera access requires a secure browser context. MediaPipe model and WASM assets require internet access when loading.
 - Use the user's supplied palette throughout: white `#FFFFFF`, black `#000000`, lime `#D4FF00`, and pumpkin orange `#FF6600`.
 

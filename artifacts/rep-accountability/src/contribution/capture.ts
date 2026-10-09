@@ -7,7 +7,7 @@ type Raw = { t: number; phase: Phase; landmarks: RepTrainingPoseFrame['landmarks
 
 const INDICES: Record<ContribExercise, number[]> = {
   squat: [23, 24, 25, 26, 27, 28],
-  'bicep-curl': [11, 12, 13, 14, 15, 16],
+  'push-up': [11, 12, 13, 14, 15, 16],
 };
 const INTERVAL_MS = 250; // about 4 fps
 const MAX_FRAMES = 40;
@@ -32,14 +32,18 @@ export class RepCapture {
   reset() { this.cycle = []; this.recent = []; this.lastT = -Infinity; this.phase = null; this.overflow = false; }
 
   observe(landmarks: Pt[], exercise: ContribExercise, measure: number | null, extended: number, bent: number, now: number, aspectRatio: number) {
-    if (Number.isFinite(aspectRatio)) this.aspect = Math.min(5, Math.max(0.2, aspectRatio));
-    const pts = INDICES[exercise].map((i) => ({ i, p: landmarks[i] }));
-    if (pts.some(({ p }) => !p)) { this.reset(); return; }
     let phase: Phase;
     if (measure === null) phase = 'unknown';
     else if (measure > extended) phase = 'stand';
     else if (measure < bent) phase = 'bottom';
     else phase = this.phase === 'bottom' || this.phase === 'return' ? 'return' : 'lower';
+    this.observePhase(landmarks, exercise, phase, now, aspectRatio);
+  }
+
+  observePhase(landmarks: Pt[], exercise: ContribExercise, phase: Phase, now: number, aspectRatio: number) {
+    if (Number.isFinite(aspectRatio)) this.aspect = Math.min(5, Math.max(0.2, aspectRatio));
+    const pts = INDICES[exercise].map((i) => ({ i, p: landmarks[i] }));
+    if (pts.some(({ p }) => !p)) { this.reset(); return; }
     const changed = phase !== this.phase;
     this.phase = phase;
     if (!changed && now - this.lastT < INTERVAL_MS) return;

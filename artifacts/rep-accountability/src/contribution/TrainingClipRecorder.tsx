@@ -11,7 +11,7 @@ import { errorMessage, getConsent, useConsent } from './consent';
 const MAX_MS = 15000;
 const MAX_BYTES = 20 * 1024 * 1024;
 const CANDIDATES = ['video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
-type Exercise = 'squat' | 'bicep-curl';
+type Exercise = 'squat' | 'push-up';
 type Placement = 'floor' | 'body-level' | 'other';
 type Clip = { blob: Blob; base: 'video/mp4' | 'video/webm'; durationMs: number; countedReps: number; exercise: Exercise };
 type Draft = { id: string; uploadURL: string; uploaded: boolean };

@@ -59,7 +59,7 @@ export const LogoutMobileSessionResponse = zod.object({
 export const ListTrainingVideosResponse = zod.object({
   "videos": zod.array(zod.object({
   "id": zod.string().uuid(),
-  "exercise": zod.enum(['squat', 'bicep-curl']),
+  "exercise": zod.enum(['squat', 'push-up', 'bicep-curl']),
   "expectedReps": zod.number().int(),
   "countedReps": zod.number().int(),
   "placement": zod.enum(['floor', 'body-level', 'other']),
@@ -90,7 +90,7 @@ export const requestTrainingVideoUploadBodySizeMax = 20971520;
 
 export const RequestTrainingVideoUploadBody = zod.object({
   "consent": zod.literal(true),
-  "exercise": zod.enum(['squat', 'bicep-curl']),
+  "exercise": zod.enum(['squat', 'push-up']),
   "expectedReps": zod.number().int().min(requestTrainingVideoUploadBodyExpectedRepsMin).max(requestTrainingVideoUploadBodyExpectedRepsMax),
   "countedReps": zod.number().int().min(requestTrainingVideoUploadBodyCountedRepsMin).max(requestTrainingVideoUploadBodyCountedRepsMax),
   "placement": zod.enum(['floor', 'body-level', 'other']),
@@ -111,7 +111,7 @@ export const CompleteTrainingVideoUploadParams = zod.object({
 
 export const CompleteTrainingVideoUploadResponse = zod.object({
   "id": zod.string().uuid(),
-  "exercise": zod.enum(['squat', 'bicep-curl']),
+  "exercise": zod.enum(['squat', 'push-up', 'bicep-curl']),
   "expectedReps": zod.number().int(),
   "countedReps": zod.number().int(),
   "placement": zod.enum(['floor', 'body-level', 'other']),
@@ -175,7 +175,7 @@ export const listRepTrainingExamplesResponseExamplesItemFramesItemLandmarksMax =
 export const ListRepTrainingExamplesResponse = zod.object({
   "examples": zod.array(zod.object({
   "id": zod.string().uuid(),
-  "exercise": zod.enum(['squat', 'bicep-curl']),
+  "exercise": zod.enum(['squat', 'push-up', 'bicep-curl']),
   "label": zod.enum(['correct', 'incorrect']),
   "aspectRatio": zod.number(),
   "source": zod.enum(['counted', 'missed']),
@@ -227,7 +227,7 @@ export const createRepTrainingExampleBodyFramesMax = 40;
 
 
 export const CreateRepTrainingExampleBody = zod.object({
-  "exercise": zod.enum(['squat', 'bicep-curl']),
+  "exercise": zod.enum(['squat', 'push-up']),
   "label": zod.enum(['correct', 'incorrect']),
   "consent": zod.literal(true),
   "source": zod.enum(['counted', 'missed']),

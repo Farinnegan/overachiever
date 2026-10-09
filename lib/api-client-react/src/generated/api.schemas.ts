@@ -48,7 +48,7 @@ export type TrainingVideoInputExercise = typeof TrainingVideoInputExercise[keyof
 
 export const TrainingVideoInputExercise = {
   squat: 'squat',
-  'bicep-curl': 'bicep-curl',
+  'push-up': 'push-up',
 } as const;
 
 export type TrainingVideoInputPlacement = typeof TrainingVideoInputPlacement[keyof typeof TrainingVideoInputPlacement];
@@ -100,6 +100,7 @@ export type TrainingVideoExercise = typeof TrainingVideoExercise[keyof typeof Tr
 
 export const TrainingVideoExercise = {
   squat: 'squat',
+  'push-up': 'push-up',
   'bicep-curl': 'bicep-curl',
 } as const;
 
@@ -196,7 +197,7 @@ export type RepTrainingExampleInputExercise = typeof RepTrainingExampleInputExer
 
 export const RepTrainingExampleInputExercise = {
   squat: 'squat',
-  'bicep-curl': 'bicep-curl',
+  'push-up': 'push-up',
 } as const;
 
 export type RepTrainingExampleInputLabel = typeof RepTrainingExampleInputLabel[keyof typeof RepTrainingExampleInputLabel];
@@ -237,6 +238,7 @@ export type RepTrainingExampleExercise = typeof RepTrainingExampleExercise[keyof
 
 export const RepTrainingExampleExercise = {
   squat: 'squat',
+  'push-up': 'push-up',
   'bicep-curl': 'bicep-curl',
 } as const;
 

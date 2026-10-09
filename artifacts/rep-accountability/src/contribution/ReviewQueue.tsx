@@ -58,7 +58,7 @@ export function ReviewQueue({ canFlag, onFlagMissed }: Props) {
         const span = item.frames[item.frames.length - 1]!.offsetMs;
         const busy = item.status === 'uploading';
         return <div key={item.id} data-testid={`row-sample-${item.id}`} style={{ border: '1px solid rgba(0,0,0,.2)', borderRadius: 12, padding: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 800 }}>#{i + 1} · {item.exercise === 'squat' ? 'Squat' : 'Bicep curl'} · {item.source === 'missed' ? 'flagged missed rep' : 'counted rep'}</div>
+          <div style={{ fontSize: 12, fontWeight: 800 }}>#{i + 1} · {item.exercise === 'squat' ? 'Squat' : 'Push-up'} · {item.source === 'missed' ? 'flagged missed rep' : 'counted rep'}</div>
           <div className="subtle mono-value" style={{ fontSize: 10, marginTop: 4 }}>{item.frames.length} frames · {(span / 1000).toFixed(1)}s</div>
           <PoseReplay sample={item} sampleId={item.id} />
           {item.error && <div role="alert" data-testid={`error-sample-${item.id}`} style={{ fontSize: 11, marginTop: 6 }}>Upload failed: {item.error} Tap share or confirm to retry.</div>}

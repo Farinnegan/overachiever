@@ -4,7 +4,7 @@ export const trainingVideosTable = pgTable("training_videos", {
   id: uuid("id").defaultRandom().primaryKey(),
   ownerId: text("owner_id").notNull(),
   objectPath: text("object_path").notNull().unique(),
-  exercise: text("exercise").$type<"squat" | "bicep-curl">().notNull(),
+  exercise: text("exercise").$type<"squat" | "push-up" | "bicep-curl">().notNull(),
   expectedReps: integer("expected_reps").notNull(),
   countedReps: integer("counted_reps").notNull(),
   placement: text("placement").$type<"floor" | "body-level" | "other">().notNull(),

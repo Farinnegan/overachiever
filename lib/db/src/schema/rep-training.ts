@@ -10,7 +10,7 @@ export type TrainingPoseFrame = {
 export const repTrainingExamplesTable = pgTable("rep_training_examples", {
   id: uuid("id").defaultRandom().primaryKey(),
   contributorHash: text("contributor_hash").notNull(),
-  exercise: text("exercise").$type<"squat" | "bicep-curl">().notNull(),
+  exercise: text("exercise").$type<"squat" | "push-up" | "bicep-curl">().notNull(),
   label: text("label").$type<"correct" | "incorrect">().notNull(),
   source: text("source").$type<"counted" | "missed">().notNull().default("counted"),
   aspectRatio: real("aspect_ratio").notNull(),

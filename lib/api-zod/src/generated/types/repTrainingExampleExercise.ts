@@ -11,5 +11,6 @@ export type RepTrainingExampleExercise = typeof RepTrainingExampleExercise[keyof
 
 export const RepTrainingExampleExercise = {
   squat: 'squat',
+  'push-up': 'push-up',
   'bicep-curl': 'bicep-curl',
 } as const;

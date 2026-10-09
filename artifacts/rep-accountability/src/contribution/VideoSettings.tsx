@@ -85,7 +85,7 @@ export function VideoSettings() {
                     {videos.length === 0 ? <div className="subtle" style={{ fontSize: 12, marginTop: 8 }} data-testid="empty-videos">No clips yet. Record one from a session.</div> :
                       <div style={{ display: 'grid', gap: 9, marginTop: 10 }}>{videos.map((v) => <div key={v.id} data-testid={`row-video-${v.id}`} style={{ border: '1px solid rgba(0,0,0,.15)', borderRadius: 12, padding: 12 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
-                          <div style={{ fontSize: 12, fontWeight: 800 }}>{v.exercise === 'squat' ? 'Squats' : 'Bicep curls'} · {(v.durationMs / 1000).toFixed(1)}s</div>
+                          <div style={{ fontSize: 12, fontWeight: 800 }}>{v.exercise === 'squat' ? 'Squats' : v.exercise === 'push-up' ? 'Push-ups' : 'Bicep curls (past exercise)'} · {(v.durationMs / 1000).toFixed(1)}s</div>
                           <span className="small-label" style={{ background: v.ready ? 'var(--brand-lime)' : 'var(--brand-orange)', color: 'var(--brand-black)', padding: '2px 7px', borderRadius: 6 }}>{v.ready ? 'READY' : 'INCOMPLETE DRAFT'}</span>
                         </div>
                         <div className="subtle mono-value" style={{ fontSize: 10, marginTop: 5 }}>{new Date(v.createdAt).toLocaleString()} · {v.placement} · you {v.expectedReps} / counted {v.countedReps} · {(v.size / 1048576).toFixed(1)} MB</div>
