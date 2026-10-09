@@ -6,7 +6,14 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './authUser';
+export * from './authUserEnvelope';
+export * from './deleteTrainingVideo200';
 export * from './healthStatus';
+export * from './listTrainingVideos200';
+export * from './logoutSuccess';
+export * from './mobileTokenExchangeRequest';
+export * from './mobileTokenExchangeSuccess';
 export * from './repTrainingDeleteReceipt';
 export * from './repTrainingExample';
 export * from './repTrainingExampleExercise';
@@ -22,3 +29,11 @@ export * from './repTrainingLandmark';
 export * from './repTrainingLandmarkIndex';
 export * from './repTrainingPoseFrame';
 export * from './repTrainingPoseFramePhase';
+export * from './requestTrainingVideoUpload201';
+export * from './trainingVideo';
+export * from './trainingVideoExercise';
+export * from './trainingVideoInput';
+export * from './trainingVideoInputContentType';
+export * from './trainingVideoInputExercise';
+export * from './trainingVideoInputPlacement';
+export * from './trainingVideoPlacement';

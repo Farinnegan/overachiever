@@ -18,3 +18,5 @@
 //   export type Post = typeof postsTable.$inferSelect;
 
 export * from "./rep-training";
+export * from "./auth";
+export * from "./training-videos";

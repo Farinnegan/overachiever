@@ -8,6 +8,137 @@
 import * as zod from 'zod';
 
 
+export const GetCurrentAuthUserResponse = zod.object({
+  "user": zod.union([zod.object({
+  "id": zod.string(),
+  "email": zod.string().email().nullable(),
+  "firstName": zod.string().nullable(),
+  "lastName": zod.string().nullable(),
+  "profileImageUrl": zod.string().nullable()
+}),zod.null()])
+})
+
+
+export const BeginBrowserLoginResponse = zod.void()
+
+
+export const HandleBrowserLoginCallbackResponse = zod.void()
+
+
+export const LogoutBrowserSessionResponse = zod.void()
+
+
+
+
+
+
+
+
+
+export const ExchangeMobileAuthorizationCodeBody = zod.object({
+  "code": zod.string().min(1),
+  "code_verifier": zod.string().min(1),
+  "redirect_uri": zod.string().url().min(1),
+  "state": zod.string().min(1),
+  "nonce": zod.string().min(1).optional()
+})
+
+export const ExchangeMobileAuthorizationCodeResponse = zod.object({
+  "token": zod.string()
+})
+
+
+export const LogoutMobileSessionResponse = zod.object({
+  "success": zod.literal(true)
+})
+
+
+/**
+ * @summary List signed-in user's private training clips
+ */
+export const ListTrainingVideosResponse = zod.object({
+  "videos": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "exercise": zod.enum(['squat', 'bicep-curl']),
+  "expectedReps": zod.number().int(),
+  "countedReps": zod.number().int(),
+  "placement": zod.enum(['floor', 'body-level', 'other']),
+  "durationMs": zod.number().int(),
+  "size": zod.number().int(),
+  "contentType": zod.string(),
+  "ready": zod.boolean(),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Reserve a private clip upload after explicit video consent
+ */
+export const requestTrainingVideoUploadBodyExpectedRepsMin = 0;
+export const requestTrainingVideoUploadBodyExpectedRepsMax = 100;
+
+export const requestTrainingVideoUploadBodyCountedRepsMin = 0;
+export const requestTrainingVideoUploadBodyCountedRepsMax = 100;
+
+export const requestTrainingVideoUploadBodyDurationMsMin = 1000;
+export const requestTrainingVideoUploadBodyDurationMsMax = 15000;
+
+export const requestTrainingVideoUploadBodySizeMax = 20971520;
+
+
+
+export const RequestTrainingVideoUploadBody = zod.object({
+  "consent": zod.literal(true),
+  "exercise": zod.enum(['squat', 'bicep-curl']),
+  "expectedReps": zod.number().int().min(requestTrainingVideoUploadBodyExpectedRepsMin).max(requestTrainingVideoUploadBodyExpectedRepsMax),
+  "countedReps": zod.number().int().min(requestTrainingVideoUploadBodyCountedRepsMin).max(requestTrainingVideoUploadBodyCountedRepsMax),
+  "placement": zod.enum(['floor', 'body-level', 'other']),
+  "durationMs": zod.number().int().min(requestTrainingVideoUploadBodyDurationMsMin).max(requestTrainingVideoUploadBodyDurationMsMax),
+  "size": zod.number().int().min(1).max(requestTrainingVideoUploadBodySizeMax),
+  "contentType": zod.enum(['video/mp4', 'video/webm'])
+})
+
+export const RequestTrainingVideoUploadResponse = zod.object({
+  "id": zod.string().uuid(),
+  "uploadURL": zod.string()
+})
+
+
+export const CompleteTrainingVideoUploadParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const CompleteTrainingVideoUploadResponse = zod.object({
+  "id": zod.string().uuid(),
+  "exercise": zod.enum(['squat', 'bicep-curl']),
+  "expectedReps": zod.number().int(),
+  "countedReps": zod.number().int(),
+  "placement": zod.enum(['floor', 'body-level', 'other']),
+  "durationMs": zod.number().int(),
+  "size": zod.number().int(),
+  "contentType": zod.string(),
+  "ready": zod.boolean(),
+  "createdAt": zod.coerce.date()
+})
+
+
+export const GetTrainingVideoContentParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const GetTrainingVideoContentResponse = zod.unknown()
+
+
+export const DeleteTrainingVideoParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const DeleteTrainingVideoResponse = zod.object({
+  "deleted": zod.boolean()
+})
+
+
 /**
  * Returns server health status
  * @summary Health check

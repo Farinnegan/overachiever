@@ -5,6 +5,126 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export interface AuthUser {
+  id: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  firstName: string | null;
+  /** @nullable */
+  lastName: string | null;
+  /** @nullable */
+  profileImageUrl: string | null;
+}
+
+export interface AuthUserEnvelope {
+  user: AuthUser | null;
+}
+
+export interface MobileTokenExchangeRequest {
+  /** @minLength 1 */
+  code: string;
+  /** @minLength 1 */
+  code_verifier: string;
+  /** @minLength 1 */
+  redirect_uri: string;
+  /** @minLength 1 */
+  state: string;
+  /** @minLength 1 */
+  nonce?: string;
+}
+
+export interface MobileTokenExchangeSuccess {
+  token: string;
+}
+
+export const LogoutSuccessValue = {
+  success: true,
+} as const;
+export type LogoutSuccess = typeof LogoutSuccessValue;
+
+export type TrainingVideoInputExercise = typeof TrainingVideoInputExercise[keyof typeof TrainingVideoInputExercise];
+
+
+export const TrainingVideoInputExercise = {
+  squat: 'squat',
+  'bicep-curl': 'bicep-curl',
+} as const;
+
+export type TrainingVideoInputPlacement = typeof TrainingVideoInputPlacement[keyof typeof TrainingVideoInputPlacement];
+
+
+export const TrainingVideoInputPlacement = {
+  floor: 'floor',
+  'body-level': 'body-level',
+  other: 'other',
+} as const;
+
+export type TrainingVideoInputContentType = typeof TrainingVideoInputContentType[keyof typeof TrainingVideoInputContentType];
+
+
+export const TrainingVideoInputContentType = {
+  'video/mp4': 'video/mp4',
+  'video/webm': 'video/webm',
+} as const;
+
+export interface TrainingVideoInput {
+  consent: true;
+  exercise: TrainingVideoInputExercise;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  expectedReps: number;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  countedReps: number;
+  placement: TrainingVideoInputPlacement;
+  /**
+     * @minimum 1000
+     * @maximum 15000
+     */
+  durationMs: number;
+  /**
+     * @minimum 1
+     * @maximum 20971520
+     */
+  size: number;
+  contentType: TrainingVideoInputContentType;
+}
+
+export type TrainingVideoExercise = typeof TrainingVideoExercise[keyof typeof TrainingVideoExercise];
+
+
+export const TrainingVideoExercise = {
+  squat: 'squat',
+  'bicep-curl': 'bicep-curl',
+} as const;
+
+export type TrainingVideoPlacement = typeof TrainingVideoPlacement[keyof typeof TrainingVideoPlacement];
+
+
+export const TrainingVideoPlacement = {
+  floor: 'floor',
+  'body-level': 'body-level',
+  other: 'other',
+} as const;
+
+export interface TrainingVideo {
+  id: string;
+  exercise: TrainingVideoExercise;
+  expectedReps: number;
+  countedReps: number;
+  placement: TrainingVideoPlacement;
+  durationMs: number;
+  size: number;
+  contentType: string;
+  ready: boolean;
+  createdAt: string;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -160,4 +280,17 @@ export interface RepTrainingExampleReceipt {
 export interface RepTrainingDeleteReceipt {
   deletedCount: number;
 }
+
+export type ListTrainingVideos200 = {
+  videos: TrainingVideo[];
+};
+
+export type RequestTrainingVideoUpload201 = {
+  id: string;
+  uploadURL: string;
+};
+
+export type DeleteTrainingVideo200 = {
+  deleted: boolean;
+};
 

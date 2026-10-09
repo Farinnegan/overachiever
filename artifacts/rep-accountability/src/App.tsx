@@ -1,6 +1,8 @@
 import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ContributionSettings } from '@/contribution/ContributionSettings';
+import { VideoSettings } from '@/contribution/VideoSettings';
+import { TrainingClipRecorder } from '@/contribution/TrainingClipRecorder';
 import { ReviewQueue } from '@/contribution/ReviewQueue';
 import { RepCapture } from '@/contribution/capture';
 import { getConsent } from '@/contribution/consent';
@@ -80,7 +82,7 @@ function Shell({ children }: { children: ReactNode }) {
       <nav className="nav-links" aria-label="Main navigation">
         {navItems.map(({ href, label }) => <Link href={href} key={href} className={`nav-link ${path === href ? 'active' : ''}`} data-testid={`link-nav-${label.toLowerCase()}`}>{label}</Link>)}
       </nav>
-      <span className="small-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><LockKeyhole size={12} /> video stays on device</span>
+      <span className="small-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><LockKeyhole size={12} /> video stays on device by default</span>
     </header>
     {children}
     <nav className="bottom-nav" aria-label="Main navigation">
@@ -142,7 +144,7 @@ function Dashboard({ data }: { data: AppData }) {
         <div><div style={{ fontSize: 13, fontWeight: 800 }}>A clean slate. No invented numbers.</div><div className="subtle" style={{ fontSize: 12, marginTop: 4 }}>Your first saved session will show up here.</div></div>
       </div> : <div style={{ display: 'grid', gap: 9 }}>{data.sessions.slice(0, 3).map((s) => <SessionRow key={s.id} session={s} />)}</div>}
     </section>
-    <div style={{ marginTop: 27, padding: '13px 15px', borderLeft: '2px solid var(--brand-orange)', color: 'rgba(0,0,0,.7)', fontSize: 12, lineHeight: 1.6 }}>A rep only counts when you do it. The camera helps you keep an honest count; your video stays on this device. Nothing is shared unless you opt in and label a sample.</div>
+    <div style={{ marginTop: 27, padding: '13px 15px', borderLeft: '2px solid var(--brand-orange)', color: 'rgba(0,0,0,.7)', fontSize: 12, lineHeight: 1.6 }}>A rep only counts when you do it. The camera helps you keep an honest count; your video stays on this device unless you separately opt in to upload a short training clip. Pose samples are shared only if you opt in and label them.</div>
   </main>;
 }
 
@@ -204,7 +206,7 @@ function SettingsPage({ data, setGoal, clear }: { data: AppData; setGoal: (n: nu
       </div></div>
     </section>
     <section className="panel" style={{ padding: 21, marginTop: 13 }}>
-      <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}><div style={{ width: 38, height: 38, background: 'var(--brand-lime)', color: 'var(--brand-black)', borderRadius: 12, display: 'grid', placeItems: 'center' }}><LockKeyhole size={17} /></div><div><div style={{ fontWeight: 800, fontSize: 14 }}>Camera privacy</div><p className="subtle" style={{ fontSize: 12, lineHeight: 1.65, margin: '7px 0 13px' }}>Camera video is processed on this device for rep counting. It is never uploaded or saved. A session log stores only the exercise, rep count, start time and duration in this browser. Optional training-data sharing is off unless you turn it on below.</p><div style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--brand-black)', fontSize: 11, fontWeight: 800 }}><ShieldCheck size={14} /> On-device by design</div></div></div>
+      <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}><div style={{ width: 38, height: 38, background: 'var(--brand-lime)', color: 'var(--brand-black)', borderRadius: 12, display: 'grid', placeItems: 'center' }}><LockKeyhole size={17} /></div><div><div style={{ fontWeight: 800, fontSize: 14 }}>Camera privacy</div><p className="subtle" style={{ fontSize: 12, lineHeight: 1.65, margin: '7px 0 13px' }}>Camera video is processed on this device for rep counting and is not uploaded or saved by default. Short training clips are a separate opt-in below, and each upload is your explicit choice. A session log stores only the exercise, rep count, start time and duration in this browser. Optional training-data sharing is off unless you turn it on below.</p><div style={{ display: 'flex', alignItems: 'center', gap: 7, color: 'var(--brand-black)', fontSize: 11, fontWeight: 800 }}><ShieldCheck size={14} /> On-device by design</div></div></div>
     </section>
     <section className="panel" style={{ padding: 21, marginTop: 13, borderColor: clearing ? 'var(--brand-orange)' : undefined }}>
       <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}><div style={{ width: 38, height: 38, background: 'var(--brand-orange)', color: 'var(--brand-black)', borderRadius: 12, display: 'grid', placeItems: 'center' }}><Trash2 size={17} /></div><div style={{ flex: 1 }}><div style={{ fontWeight: 800, fontSize: 14 }}>Clear workout history</div><p className="subtle" style={{ fontSize: 12, margin: '6px 0 14px', lineHeight: 1.6 }}>{clearing ? 'This permanently removes all saved sessions from this browser. Your weekly target stays.' : `${data.sessions.length} saved session${data.sessions.length === 1 ? '' : 's'} currently stored here.`}</p>
@@ -213,6 +215,7 @@ function SettingsPage({ data, setGoal, clear }: { data: AppData; setGoal: (n: nu
       </div></div>
     </section>
     <ContributionSettings />
+    <VideoSettings />
     <div style={{ marginTop: 25, color: 'rgba(0,0,0,.62)', fontSize: 11, display: 'flex', gap: 7, alignItems: 'center' }}><CircleHelp size={14} /> Your workout history stays on this device unless you clear browser storage.</div>
   </main>;
 }
@@ -256,6 +259,11 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
   const lastVideoTime = useRef(-1);
   const captureRef = useRef(new RepCapture());
   const [ended, setEnded] = useState(false);
+  const clipPendingRef = useRef(false);
+  const [clipPending, setClipPending] = useState(false);
+  const onClipPending = useCallback((p: boolean) => { clipPendingRef.current = p; setClipPending(p); }, []);
+  const getStream = useCallback(() => streamRef.current, []);
+  const getReps = useCallback(() => repRef.current, []);
   const queueItems = useQueue();
   useEffect(() => () => clearQueue(), []);
 
@@ -390,7 +398,7 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
     const durationSeconds = startRef.current === null ? 0 : Math.max(0, Math.floor((Date.now() - startRef.current) / 1000));
     stopCamera();
     if (finalReps > 0 && began) save({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, exercise, reps: finalReps, startedAt: began, durationSeconds });
-    if (getQueue().length > 0) { setCameraState('idle'); setModelState('waiting'); setSaving(false); setEnded(true); return; }
+    if (getQueue().length > 0 || clipPendingRef.current) { setCameraState('idle'); setModelState('waiting'); setSaving(false); setEnded(true); return; }
     setLocation('/');
   };
 
@@ -408,7 +416,7 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
       {cameraState !== 'ready' && <div className="camera-idle">
         <div className="camera-idle-mark">{cameraState === 'error' ? <CameraOff size={26} /> : cameraState === 'loading' ? <Activity size={26} /> : <Video size={26} />}</div>
         <div className="font-display" style={{ fontSize: 22 }}>{cameraState === 'error' ? 'We couldn’t get you on camera.' : cameraState === 'loading' ? 'Getting your session ready…' : 'A clear side view works best.'}</div>
-        <div style={{ color: 'rgba(255,255,255,.76)', fontSize: 11, maxWidth: 310, lineHeight: 1.6, marginTop: 8 }}>{ended ? 'Camera off. Review your samples below, then return to today.' : cameraState === 'idle' ? `Choose ${exercise === 'squat' ? 'squats' : 'bicep curls'}, then allow camera access. Video stays on this device. Optional pose samples upload only when you label them.` : cameraState === 'loading' ? 'Loading the pose model and requesting camera permission.' : error}</div>
+        <div style={{ color: 'rgba(255,255,255,.76)', fontSize: 11, maxWidth: 310, lineHeight: 1.6, marginTop: 8 }}>{ended ? 'Camera off. Review your samples below, then return to today.' : cameraState === 'idle' ? `Choose ${exercise === 'squat' ? 'squats' : 'bicep curls'}, then allow camera access. Video stays on this device unless you choose to upload a training clip. Optional pose samples upload only when you label them.` : cameraState === 'loading' ? 'Loading the pose model and requesting camera permission.' : error}</div>
         {cameraState === 'idle' && !ended && <button onClick={() => void begin()} className="primary-btn" data-testid="button-enable-camera" style={{ marginTop: 18, background: 'var(--brand-lime)', color: 'var(--brand-black)' }}><Camera size={16} /> Allow camera & begin</button>}
         {cameraState === 'error' && <button onClick={() => void begin(facing, startRef.current !== null)} className="primary-btn" data-testid="button-retry-camera" style={{ marginTop: 16 }}><RotateCcw size={15} /> Try again</button>}
       </div>}
@@ -426,9 +434,10 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
         {(exercise === 'squat' ? ['Stand tall', 'Lower with control', 'Stand tall again'] : ['Arm extended', 'Curl up', 'Extend again']).map((label, i) => <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 22, height: 22, borderRadius: 8, background: i === 1 ? 'var(--brand-lime)' : 'var(--brand-white)', border: '1px solid rgba(0,0,0,.14)', color: 'var(--brand-black)', display: 'grid', placeItems: 'center', font: '10px var(--app-font-mono)' }}>{i + 1}</span><span style={{ fontSize: 10, fontWeight: 700 }}>{label}</span>{i < 2 && <ArrowRight size={12} color="var(--brand-orange)" />}</div>)}
       </div>
     </div>
+    <TrainingClipRecorder exercise={exercise} cameraActive={cameraState === 'ready'} getStream={getStream} getReps={getReps} onPendingChange={onClipPending} />
     <ReviewQueue canFlag={cameraState === 'ready'} onFlagMissed={flagMissed} />
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 14, color: 'rgba(0,0,0,.7)', fontSize: 10, lineHeight: 1.55 }}><LockKeyhole size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Camera permission is required. Your camera video is never uploaded; pose tracking runs on-device. Only if you opt in and label a sample are joint coordinates shared. Camera access requires HTTPS or localhost. The model loads from the web on first use.</div>
-    {ended && <div role="status" data-testid="status-session-ended" style={{ marginTop: 14, padding: '12px 14px', borderLeft: '3px solid var(--brand-lime)', fontSize: 12 }}>Camera off. {reps > 0 ? 'Workout saved.' : 'No reps were counted, so no workout was saved.'} {queueItems.length} sample{queueItems.length === 1 ? '' : 's'} left to label or discard. They disappear when you leave this page.</div>}
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 14, color: 'rgba(0,0,0,.7)', fontSize: 10, lineHeight: 1.55 }}><LockKeyhole size={13} style={{ flexShrink: 0, marginTop: 1 }} /> Camera permission is required. Camera video is not uploaded by default; pose tracking runs on-device. Training clips and pose samples are separate opt-ins, and nothing uploads without your explicit action. Camera access requires HTTPS or localhost. The model loads from the web on first use.</div>
+    {ended && <div role="status" data-testid="status-session-ended" style={{ marginTop: 14, padding: '12px 14px', borderLeft: '3px solid var(--brand-lime)', fontSize: 12 }}>Camera off. {reps > 0 ? 'Workout saved.' : 'No reps were counted, so no workout was saved.'} {queueItems.length} sample{queueItems.length === 1 ? '' : 's'} left to label or discard.{clipPending ? ' A training clip is waiting for you to upload or discard it.' : ''} They disappear when you leave this page.</div>}
     {ended ? <Link href="/" className="primary-btn" data-testid="link-session-done" style={{ width: '100%', marginTop: 20, background: 'var(--brand-black)', color: 'var(--brand-white)' }}>Done, back to today</Link> : <button className="primary-btn" onClick={finish} disabled={(cameraState !== 'ready' && reps === 0) || saving} data-testid="button-end-save-session" style={{ width: '100%', marginTop: 20, background: reps > 0 ? 'var(--brand-black)' : 'var(--brand-white)', color: reps > 0 ? 'var(--brand-white)' : 'var(--brand-black)' }}>
       {reps > 0 ? <><Check size={16} /> End & save {reps} {reps === 1 ? 'rep' : 'reps'}</> : <><X size={16} /> End session · no reps to save</>}
     </button>}

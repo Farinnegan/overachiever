@@ -1,15 +1,15 @@
 import { useSyncExternalStore } from 'react';
 
 const KEY = 'rep-accountability-contribution-v1';
-export type ConsentState = { enabled: boolean; token: string | null };
+export type ConsentState = { enabled: boolean; token: string | null; videoEnabled: boolean };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function read(): ConsentState {
   try {
     const p = JSON.parse(localStorage.getItem(KEY) || 'null') as Partial<ConsentState> | null;
     const ok = typeof p?.token === 'string' && UUID.test(p.token);
-    return { enabled: p?.enabled === true && ok, token: ok ? (p!.token as string) : null };
-  } catch { return { enabled: false, token: null }; }
+    return { enabled: p?.enabled === true && ok, token: ok ? (p!.token as string) : null, videoEnabled: p?.videoEnabled === true };
+  } catch { return { enabled: false, token: null, videoEnabled: false }; }
 }
 
 function makeUuid(): string {
@@ -29,7 +29,7 @@ export const getConsent = () => state;
 /** Returns an error message, or null on success. Nothing changes if storage fails. */
 export function setContribution(enabled: boolean): string | null {
   try {
-    const next: ConsentState = { enabled, token: state.token ?? (enabled ? makeUuid() : null) };
+    const next: ConsentState = { ...state, enabled, token: state.token ?? (enabled ? makeUuid() : null) };
     localStorage.setItem(KEY, JSON.stringify(next));
     state = next;
     listeners.forEach((l) => l());
@@ -52,4 +52,17 @@ export function errorMessage(e: unknown): string {
     if (o.message) return o.message;
   }
   return 'Request failed. Check your connection and try again.';
+}
+
+/** Separate, default-off opt-in for training videos. Never touches pose consent. */
+export function setVideoEnabled(videoEnabled: boolean): string | null {
+  try {
+    const next: ConsentState = { ...state, videoEnabled };
+    localStorage.setItem(KEY, JSON.stringify(next));
+    state = next;
+    listeners.forEach((l) => l());
+    return null;
+  } catch {
+    return 'This browser would not let us save your choice. Your previous setting is unchanged.';
+  }
 }

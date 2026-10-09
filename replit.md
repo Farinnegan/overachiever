@@ -33,7 +33,10 @@ _Populate as you build — short repo map plus pointers to the source-of-truth f
 - Contributed samples store only six exercise-specific joints, visibility, movement phases, aspect ratio and count feedback. They are a dataset for future tracker improvement, not automatic retraining.
 - Feedback should focus on missed counts, not judging whether counted reps were wrong. Ignore legacy `source=counted,label=incorrect` examples for analysis/training: the user said that label was clicked by mistake. Do not delete it without permission.
 - Export/delete ownership uses a random browser key whose hash is stored server-side; clearing browser storage loses access to previously shared samples. Never put this key in URLs or logs.
-- Camera video and pose inference stay on-device. Never add camera uploads without explicit user consent.
+- Pose inference stays on-device. Camera video stays local by default; the user explicitly requested a separate optional video-training mode for this personal app.
+- Video training is a separate, default-off switch. Record only manually started, silent clips up to 15 seconds/20MB; preview and explicitly upload each clip. Store bytes privately in App Storage, only paths/metadata in Postgres.
+- Replit Auth is required only for uploading/accessing clips, not workouts or local previews. Video ownership is account-based; pose contributions retain their existing anonymous browser-key ownership.
+- Video clips include camera placement and expected versus counted reps for investigating misses. Neither pose labels nor video uploads trigger automatic retraining.
 - Camera access requires a secure browser context. MediaPipe model and WASM assets require internet access when loading.
 - Use the user's supplied palette throughout: white `#FFFFFF`, black `#000000`, lime `#D4FF00`, and pumpkin orange `#FF6600`.
 

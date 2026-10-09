@@ -13,6 +13,136 @@ tags:
   - name: rep-training
     description: Opt-in, anonymous pose-landmark examples for improving repetition counting
 paths:
+  /auth/user:
+    get:
+      operationId: getCurrentAuthUser
+      responses:
+        "200":
+          description: Authentication state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthUserEnvelope"
+  /login:
+    get:
+      operationId: beginBrowserLogin
+      responses:
+        "302":
+          description: Redirect to sign in
+  /callback:
+    get:
+      operationId: handleBrowserLoginCallback
+      responses:
+        "302":
+          description: Complete sign in
+  /logout:
+    get:
+      operationId: logoutBrowserSession
+      responses:
+        "302":
+          description: Sign out
+  /mobile-auth/token-exchange:
+    post:
+      operationId: exchangeMobileAuthorizationCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MobileTokenExchangeRequest"
+      responses:
+        "200":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MobileTokenExchangeSuccess"
+  /mobile-auth/logout:
+    post:
+      operationId: logoutMobileSession
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutSuccess"
+  /rep-training/videos:
+    get:
+      operationId: listTrainingVideos
+      summary: List signed-in user's private training clips
+      responses:
+        "200":
+          description: Clips, including incomplete uploads
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  videos:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TrainingVideo"
+                required: [videos]
+  /rep-training/videos/uploads:
+    post:
+      operationId: requestTrainingVideoUpload
+      summary: Reserve a private clip upload after explicit video consent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrainingVideoInput"
+      responses:
+        "201":
+          description: Upload reserved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string, format: uuid }
+                  uploadURL: { type: string }
+                required: [id, uploadURL]
+  /rep-training/videos/{id}/complete:
+    post:
+      operationId: completeTrainingVideoUpload
+      parameters:
+        - $ref: "#/components/parameters/TrainingVideoId"
+      responses:
+        "200":
+          description: Uploaded clip verified and saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrainingVideo"
+  /rep-training/videos/{id}/content:
+    get:
+      operationId: getTrainingVideoContent
+      parameters:
+        - $ref: "#/components/parameters/TrainingVideoId"
+      responses:
+        "200":
+          description: Private video content; supports range requests
+          content:
+            application/octet-stream:
+              schema: { type: string, format: binary }
+  /rep-training/videos/{id}:
+    delete:
+      operationId: deleteTrainingVideo
+      parameters:
+        - $ref: "#/components/parameters/TrainingVideoId"
+      responses:
+        "200":
+          description: Clip and stored file deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deleted: { type: boolean }
+                required: [deleted]
   /healthz:
     get:
       operationId: healthCheck
@@ -96,7 +226,75 @@ paths:
         "400":
           description: Invalid contributor token
 components:
+  parameters:
+    TrainingVideoId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
   schemas:
+    AuthUser:
+      type: object
+      required: [id, email, firstName, lastName, profileImageUrl]
+      properties:
+        id: { type: string }
+        email: { type: [string, "null"], format: email }
+        firstName: { type: [string, "null"] }
+        lastName: { type: [string, "null"] }
+        profileImageUrl: { type: [string, "null"] }
+    AuthUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/AuthUser"
+            - type: "null"
+    MobileTokenExchangeRequest:
+      type: object
+      required: [code, code_verifier, redirect_uri, state]
+      properties:
+        code: { type: string, minLength: 1 }
+        code_verifier: { type: string, minLength: 1 }
+        redirect_uri: { type: string, minLength: 1, format: uri }
+        state: { type: string, minLength: 1 }
+        nonce: { type: string, minLength: 1 }
+    MobileTokenExchangeSuccess:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string }
+    LogoutSuccess:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean, const: true }
+    TrainingVideoInput:
+      type: object
+      required: [consent, exercise, expectedReps, countedReps, placement, durationMs, size, contentType]
+      properties:
+        consent: { type: boolean, const: true }
+        exercise: { type: string, enum: [squat, bicep-curl] }
+        expectedReps: { type: integer, minimum: 0, maximum: 100 }
+        countedReps: { type: integer, minimum: 0, maximum: 100 }
+        placement: { type: string, enum: [floor, body-level, other] }
+        durationMs: { type: integer, minimum: 1000, maximum: 15000 }
+        size: { type: integer, minimum: 1, maximum: 20971520 }
+        contentType: { type: string, enum: [video/mp4, video/webm] }
+    TrainingVideo:
+      type: object
+      required: [id, exercise, expectedReps, countedReps, placement, durationMs, size, contentType, ready, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        exercise: { type: string, enum: [squat, bicep-curl] }
+        expectedReps: { type: integer }
+        countedReps: { type: integer }
+        placement: { type: string, enum: [floor, body-level, other] }
+        durationMs: { type: integer }
+        size: { type: integer }
+        contentType: { type: string }
+        ready: { type: boolean }
+        createdAt: { type: string, format: date-time }
     HealthStatus:
       type: object
       properties:
