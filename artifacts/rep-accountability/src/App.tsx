@@ -289,14 +289,13 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
       const landmarks = result.landmarks?.[0];
       const measure = landmarks ? chooseAngle(landmarks, exercise, video.videoWidth / video.videoHeight) : null;
       const collecting = getConsent().enabled && !isFull();
+      const extended = exercise === 'squat' ? 155 : 150;
+      const bent = exercise === 'squat' ? 110 : 75;
+      if (collecting && landmarks) captureRef.current.observe(landmarks, exercise, measure, extended, bent, performance.now(), video.videoWidth / video.videoHeight);
+      else captureRef.current.reset();
       if (measure === null) {
-        captureRef.current.reset();
         phaseRef.current = 'unarmed'; setPhase('Keep your joints clearly in view');
       } else {
-        const extended = exercise === 'squat' ? 155 : 150;
-        const bent = exercise === 'squat' ? 110 : 75;
-        if (collecting && landmarks) captureRef.current.observe(landmarks, exercise, measure, extended, bent, performance.now(), video.videoWidth / video.videoHeight);
-        else captureRef.current.reset();
         if (measure > extended) {
           if (phaseRef.current === 'low' && performance.now() - lastRepAt.current > 850) {
             lastRepAt.current = performance.now(); repRef.current += 1; setReps(repRef.current);

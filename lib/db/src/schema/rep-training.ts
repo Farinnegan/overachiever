@@ -3,7 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 
 export type TrainingPoseFrame = {
   offsetMs: number;
-  phase: "stand" | "lower" | "bottom" | "return";
+  phase: "stand" | "lower" | "bottom" | "return" | "unknown";
   landmarks: { index: number; x: number; y: number; visibility: number }[];
 };
 

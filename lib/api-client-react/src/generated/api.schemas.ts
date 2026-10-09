@@ -54,6 +54,7 @@ export const RepTrainingPoseFramePhase = {
   lower: 'lower',
   bottom: 'bottom',
   return: 'return',
+  unknown: 'unknown',
 } as const;
 
 export interface RepTrainingPoseFrame {

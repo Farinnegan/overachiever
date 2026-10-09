@@ -50,7 +50,7 @@ export const ListRepTrainingExamplesResponse = zod.object({
   "source": zod.enum(['counted', 'missed']),
   "frames": zod.array(zod.object({
   "offsetMs": zod.number().int().min(listRepTrainingExamplesResponseExamplesItemFramesItemOffsetMsMin).max(listRepTrainingExamplesResponseExamplesItemFramesItemOffsetMsMax),
-  "phase": zod.enum(['stand', 'lower', 'bottom', 'return']),
+  "phase": zod.enum(['stand', 'lower', 'bottom', 'return', 'unknown']),
   "landmarks": zod.array(zod.object({
   "index": zod.union([zod.literal(11),zod.literal(12),zod.literal(13),zod.literal(14),zod.literal(15),zod.literal(16),zod.literal(23),zod.literal(24),zod.literal(25),zod.literal(26),zod.literal(27),zod.literal(28)]),
   "x": zod.number().min(listRepTrainingExamplesResponseExamplesItemFramesItemLandmarksItemXMin).max(listRepTrainingExamplesResponseExamplesItemFramesItemLandmarksItemXMax),
@@ -103,7 +103,7 @@ export const CreateRepTrainingExampleBody = zod.object({
   "aspectRatio": zod.number().min(createRepTrainingExampleBodyAspectRatioMin).max(createRepTrainingExampleBodyAspectRatioMax),
   "frames": zod.array(zod.object({
   "offsetMs": zod.number().int().min(createRepTrainingExampleBodyFramesItemOffsetMsMin).max(createRepTrainingExampleBodyFramesItemOffsetMsMax),
-  "phase": zod.enum(['stand', 'lower', 'bottom', 'return']),
+  "phase": zod.enum(['stand', 'lower', 'bottom', 'return', 'unknown']),
   "landmarks": zod.array(zod.object({
   "index": zod.union([zod.literal(11),zod.literal(12),zod.literal(13),zod.literal(14),zod.literal(15),zod.literal(16),zod.literal(23),zod.literal(24),zod.literal(25),zod.literal(26),zod.literal(27),zod.literal(28)]),
   "x": zod.number().min(createRepTrainingExampleBodyFramesItemLandmarksItemXMin).max(createRepTrainingExampleBodyFramesItemLandmarksItemXMax),

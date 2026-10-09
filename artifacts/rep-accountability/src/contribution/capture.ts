@@ -1,7 +1,7 @@
 import type { RepTrainingPoseFrame } from '@workspace/api-client-react';
 import type { ContribExercise, Sample } from './queue';
 
-type Phase = 'stand' | 'lower' | 'bottom' | 'return';
+type Phase = 'stand' | 'lower' | 'bottom' | 'return' | 'unknown';
 type Pt = { x: number; y: number; visibility?: number };
 type Raw = { t: number; phase: Phase; landmarks: RepTrainingPoseFrame['landmarks'] };
 
@@ -31,12 +31,13 @@ export class RepCapture {
 
   reset() { this.cycle = []; this.recent = []; this.lastT = -Infinity; this.phase = null; this.overflow = false; }
 
-  observe(landmarks: Pt[], exercise: ContribExercise, measure: number, extended: number, bent: number, now: number, aspectRatio: number) {
+  observe(landmarks: Pt[], exercise: ContribExercise, measure: number | null, extended: number, bent: number, now: number, aspectRatio: number) {
     if (Number.isFinite(aspectRatio)) this.aspect = Math.min(5, Math.max(0.2, aspectRatio));
     const pts = INDICES[exercise].map((i) => ({ i, p: landmarks[i] }));
     if (pts.some(({ p }) => !p)) { this.reset(); return; }
     let phase: Phase;
-    if (measure > extended) phase = 'stand';
+    if (measure === null) phase = 'unknown';
+    else if (measure > extended) phase = 'stand';
     else if (measure < bent) phase = 'bottom';
     else phase = this.phase === 'bottom' || this.phase === 'return' ? 'return' : 'lower';
     const changed = phase !== this.phase;
@@ -49,6 +50,8 @@ export class RepCapture {
     };
     this.recent.push(frame);
     while (this.recent.length > MAX_FRAMES || (this.recent.length > 1 && frame.t - this.recent[0]!.t > MAX_SPAN)) this.recent.shift();
+    // Uncertain poses remain useful for diagnosing misses but must not form a counted rep.
+    if (phase === 'unknown') { this.cycle = []; this.overflow = false; return; }
     if (phase === 'stand') {
       if (this.overflow || this.cycle.every((f) => f.phase === 'stand')) { this.cycle = [frame]; this.overflow = false; return; }
     } else if (this.overflow) return;
@@ -67,8 +70,8 @@ export class RepCapture {
   }
 
   /** Snapshot of the last few seconds, for a rep the counter missed. */
-  snapshotMissed(exercise: ContribExercise): Sample | null {
-    const r = this.recent;
+  snapshotMissed(exercise: ContribExercise, now = performance.now()): Sample | null {
+    const r = this.recent.filter((frame) => now - frame.t <= MAX_SPAN);
     if (r.length < MIN_FRAMES) return null;
     return { exercise, frames: toFrames(r.slice(-MAX_FRAMES)), source: 'missed', aspectRatio: this.aspect };
   }

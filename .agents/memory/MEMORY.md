@@ -1,2 +1,3 @@
 - [Generated API naming](generated-api-naming.md) — response component names must not collide with operation-derived Zod exports.
 - [Glob dependency safety](glob-dependency-safety.md) — avoid restoring braces-based glob libraries without confirming a patched release.
+- [Camera placement evidence](camera-placement-evidence.md) — floor-level counted accurately; body-height missed counts, but saved successes alone cannot explain why.

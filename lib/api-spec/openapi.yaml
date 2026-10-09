@@ -134,7 +134,7 @@ components:
           maximum: 12000
         phase:
           type: string
-          enum: [stand, lower, bottom, return]
+          enum: [stand, lower, bottom, return, unknown]
         landmarks:
           type: array
           minItems: 6
