@@ -1,20 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Download, HeartHandshake, RotateCcw, Trash2 } from 'lucide-react';
 import {
-  getListRepTrainingExamplesQueryKey, useDeleteRepTrainingExamples, useListRepTrainingExamples,
+  getGetRepTrainingTrackerQueryKey, getListRepTrainingExamplesQueryKey,
+  useDeleteRepTrainingExamples, useEvaluateRepTrainingTracker,
+  useGetRepTrainingTracker, useListRepTrainingExamples,
 } from '@workspace/api-client-react';
 import { contributorRequest, errorMessage, setContribution, useConsent } from './consent';
 import { clearQueue } from './queue';
+import { setActiveTracker } from './tracker';
 
 export function ContributionSettings() {
   const consent = useConsent();
   const qc = useQueryClient();
   const request = contributorRequest(consent.token);
   const list = useListRepTrainingExamples({ request, query: { enabled: !!consent.token, queryKey: getListRepTrainingExamplesQueryKey() } });
+  const tracker = useGetRepTrainingTracker({ request, query: { enabled: !!consent.token, queryKey: getGetRepTrainingTrackerQueryKey() } });
+  const evaluate = useEvaluateRepTrainingTracker({ request });
   const del = useDeleteRepTrainingExamples({ request });
   const [confirming, setConfirming] = useState(false);
   const [msg, setMsg] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  useEffect(() => {
+    if (tracker.data) setActiveTracker(tracker.data.version, tracker.data.rules);
+  }, [tracker.data]);
 
   const toggle = () => {
     const next = !consent.enabled;
@@ -39,6 +47,20 @@ export function ContributionSettings() {
     } catch (e) { setMsg({ kind: 'err', text: errorMessage(e) }); }
   };
   const count = list.data?.examples.length ?? 0;
+  const evaluateNow = async () => {
+    if (!consent.enabled || !consent.token) return;
+    try {
+      const result = await evaluate.mutateAsync();
+      setActiveTracker(result.version, result.rules);
+      await qc.invalidateQueries({ queryKey: getGetRepTrainingTrackerQueryKey() });
+      const report = result.report;
+      setMsg({ kind: 'ok', text: report
+        ? report.status === 'activated'
+          ? `Updated the local thresholds after the held-out check passed (${Math.round((report.tunedAccuracy ?? 0) * 100)}% exact-count accuracy).`
+          : report.message
+        : 'Evaluation completed.' });
+    } catch (e) { setMsg({ kind: 'err', text: errorMessage(e) }); }
+  };
 
   return <section className="panel" style={{ padding: 21, marginTop: 13 }} data-testid="section-contribution">
     <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start' }}>
@@ -57,6 +79,21 @@ export function ContributionSettings() {
               <div style={{ marginTop: 6 }}><span className="mono-value" style={{ fontSize: 31 }} data-testid="value-sample-count">{count}</span>
                 <span className="subtle" style={{ fontSize: 11, marginLeft: 8 }} data-testid="text-samples-remaining">{list.data ? `${list.data.remaining} of ${list.data.limit} slots left` : ''}</span></div>}
           <p className="subtle" style={{ fontSize: 11, lineHeight: 1.6, margin: '10px 0 12px' }}>Ownership is tied only to an anonymous ID stored in this browser. If you clear browser storage you lose access to these samples, so export or delete them first.</p>
+          <div style={{ margin: '12px 0', padding: 12, border: '1px solid rgba(0,0,0,.18)', borderRadius: 12 }} data-testid="panel-tracker-evaluation">
+            <div className="small-label">SQUAT / CURL RULE EVALUATION</div>
+            <p className="subtle" style={{ fontSize: 11, lineHeight: 1.55, margin: '7px 0 10px' }}>Whole sessions are held out from tuning. New angle thresholds activate only if they improve unseen-session accuracy to at least 80% without a regression for either exercise. The MediaPipe model is unchanged; pose inference stays on this device. Push-up samples are saved but excluded from this evaluation.</p>
+            {tracker.isLoading ? <div className="subtle" style={{ fontSize: 11 }} data-testid="status-tracker-loading">Loading current tracker…</div> :
+              tracker.isError ? <div role="alert" style={{ fontSize: 11 }} data-testid="error-tracker">Could not load the tracker report. {errorMessage(tracker.error)}</div> :
+                <div style={{ fontSize: 11, lineHeight: 1.6 }} data-testid="status-tracker-report">
+                  <div>Active version: <span className="mono-value">{tracker.data?.version}</span></div>
+                  {tracker.data?.report
+                    ? <div>{tracker.data.report.message}<br />{tracker.data.report.baselineAccuracy === null ? 'More labeled sessions are needed.' : `Held-out exact-count accuracy: ${Math.round((tracker.data.report.baselineAccuracy ?? 0) * 100)}% baseline → ${Math.round((tracker.data.report.tunedAccuracy ?? 0) * 100)}% tuned · ${tracker.data.report.trainingSessions} training sessions / ${tracker.data.report.heldOutSessions} held out.`}</div>
+                    : <div>No evaluation has been run yet.</div>}
+                </div>}
+            <button className="secondary-btn" style={{ marginTop: 10 }} onClick={() => void evaluateNow()} disabled={evaluate.isPending || tracker.isLoading || !consent.enabled || !consent.token} data-testid="button-evaluate-tracker">
+              <RotateCcw size={13} /> {evaluate.isPending ? 'Evaluating held-out sessions…' : 'Evaluate and apply if verified'}
+            </button>
+          </div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <button className="secondary-btn" onClick={exportJson} disabled={!list.data || count === 0} data-testid="button-export-json"><Download size={14} /> Export JSON</button>
             {!confirming && <button className="secondary-btn danger-btn" onClick={() => setConfirming(true)} disabled={count === 0} data-testid="button-delete-shared"><Trash2 size={14} /> Delete all shared</button>}

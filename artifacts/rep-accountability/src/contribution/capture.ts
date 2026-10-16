@@ -8,6 +8,7 @@ type Raw = { t: number; phase: Phase; landmarks: RepTrainingPoseFrame['landmarks
 const INDICES: Record<ContribExercise, number[]> = {
   squat: [23, 24, 25, 26, 27, 28],
   'push-up': [11, 12, 13, 14, 15, 16],
+  'bicep-curl': [11, 12, 13, 14, 15, 16],
 };
 const INTERVAL_MS = 250; // about 4 fps
 const MAX_FRAMES = 40;

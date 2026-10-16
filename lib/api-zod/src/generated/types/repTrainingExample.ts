@@ -17,5 +17,10 @@ export interface RepTrainingExample {
   aspectRatio: number;
   source: RepTrainingExampleSource;
   frames: RepTrainingPoseFrame[];
+  /** @nullable */
+  sessionId?: string | null;
+  /** @nullable */
+  expectedCount?: number | null;
+  trackerVersion?: string;
   createdAt: Date;
 }

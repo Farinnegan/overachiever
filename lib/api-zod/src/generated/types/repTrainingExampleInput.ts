@@ -25,4 +25,13 @@ export interface RepTrainingExampleInput {
      * @maxItems 40
      */
   frames: RepTrainingPoseFrame[];
+  /** @maxLength 64 */
+  sessionId?: string;
+  /**
+     * @minimum 0
+     * @maximum 20
+     */
+  expectedCount?: number;
+  /** @maxLength 100 */
+  trackerVersion?: string;
 }

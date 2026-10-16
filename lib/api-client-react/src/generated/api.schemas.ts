@@ -198,6 +198,7 @@ export type RepTrainingExampleInputExercise = typeof RepTrainingExampleInputExer
 export const RepTrainingExampleInputExercise = {
   squat: 'squat',
   'push-up': 'push-up',
+  'bicep-curl': 'bicep-curl',
 } as const;
 
 export type RepTrainingExampleInputLabel = typeof RepTrainingExampleInputLabel[keyof typeof RepTrainingExampleInputLabel];
@@ -231,6 +232,15 @@ export interface RepTrainingExampleInput {
      * @maxItems 40
      */
   frames: RepTrainingPoseFrame[];
+  /** @maxLength 64 */
+  sessionId?: string;
+  /**
+     * @minimum 0
+     * @maximum 20
+     */
+  expectedCount?: number;
+  /** @maxLength 100 */
+  trackerVersion?: string;
 }
 
 export type RepTrainingExampleExercise = typeof RepTrainingExampleExercise[keyof typeof RepTrainingExampleExercise];
@@ -265,6 +275,11 @@ export interface RepTrainingExample {
   aspectRatio: number;
   source: RepTrainingExampleSource;
   frames: RepTrainingPoseFrame[];
+  /** @nullable */
+  sessionId?: string | null;
+  /** @nullable */
+  expectedCount?: number | null;
+  trackerVersion?: string;
   createdAt: string;
 }
 
@@ -281,6 +296,47 @@ export interface RepTrainingExampleReceipt {
 
 export interface RepTrainingDeleteReceipt {
   deletedCount: number;
+}
+
+export interface RepTrainingRule {
+  extended: number;
+  bent: number;
+  visibility: number;
+  cooldownMs: number;
+}
+
+export interface RepTrainingRules {
+  squat: RepTrainingRule;
+  'bicep-curl': RepTrainingRule;
+  'push-up': RepTrainingRule;
+}
+
+export type RepTrainingEvaluationReportStatus = typeof RepTrainingEvaluationReportStatus[keyof typeof RepTrainingEvaluationReportStatus];
+
+
+export const RepTrainingEvaluationReportStatus = {
+  insufficient_data: 'insufficient_data',
+  no_improvement: 'no_improvement',
+  activated: 'activated',
+} as const;
+
+export interface RepTrainingEvaluationReport {
+  status: RepTrainingEvaluationReportStatus;
+  message: string;
+  trainingSessions: number;
+  heldOutSessions: number;
+  trainingExamples: number;
+  heldOutExamples: number;
+  /** @nullable */
+  baselineAccuracy: number | null;
+  /** @nullable */
+  tunedAccuracy: number | null;
+}
+
+export interface RepTrainingTrackerResponse {
+  version: string;
+  rules: RepTrainingRules;
+  report: RepTrainingEvaluationReport | null;
 }
 
 export type ListTrainingVideos200 = {

@@ -4,6 +4,7 @@
   "files": [],
   "references": [
     { "path": "./lib/replit-auth-web" },
+    { "path": "./lib/rep-tracker" },
     {
       "path": "./lib/db"
     },

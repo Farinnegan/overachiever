@@ -1,0 +1,10 @@
+{
+  "name": "@workspace/rep-tracker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test test/*.test.mjs"
+  },
+  "exports": { ".": "./src/index.ts" }
+}

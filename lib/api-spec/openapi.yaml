@@ -225,6 +225,43 @@ paths:
                 $ref: "#/components/schemas/RepTrainingDeleteReceipt"
         "400":
           description: Invalid contributor token
+  /rep-training/tracker:
+    get:
+      operationId: getRepTrainingTracker
+      tags: [rep-training]
+      summary: Read the contributor's active tracker rules and last evaluation
+      parameters:
+        - name: X-Contributor-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Active local-counting thresholds and evaluation summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepTrainingTrackerResponse"
+    post:
+      operationId: evaluateRepTrainingTracker
+      tags: [rep-training]
+      summary: Compare current and tuned rules on session-separated labeled examples
+      parameters:
+        - name: X-Contributor-Token
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Evaluation result; tuned rules activate only if held-out accuracy improves
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RepTrainingTrackerResponse"
 components:
   parameters:
     TrainingVideoId:
@@ -346,7 +383,7 @@ components:
       properties:
         exercise:
           type: string
-          enum: [squat, push-up]
+          enum: [squat, push-up, bicep-curl]
         label:
           type: string
           enum: [correct, incorrect]
@@ -366,6 +403,16 @@ components:
           maxItems: 40
           items:
             $ref: "#/components/schemas/RepTrainingPoseFrame"
+        sessionId:
+          type: string
+          maxLength: 64
+        expectedCount:
+          type: integer
+          minimum: 0
+          maximum: 20
+        trackerVersion:
+          type: string
+          maxLength: 100
       required: [exercise, label, consent, source, aspectRatio, frames]
     RepTrainingExample:
       type: object
@@ -388,6 +435,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RepTrainingPoseFrame"
+        sessionId:
+          type: ["string", "null"]
+        expectedCount:
+          type: ["integer", "null"]
+        trackerVersion:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -419,4 +472,58 @@ components:
         deletedCount:
           type: integer
       required: [deletedCount]
-
+    RepTrainingRule:
+      type: object
+      properties:
+        extended:
+          type: number
+        bent:
+          type: number
+        visibility:
+          type: number
+        cooldownMs:
+          type: integer
+      required: [extended, bent, visibility, cooldownMs]
+    RepTrainingRules:
+      type: object
+      properties:
+        squat:
+          $ref: "#/components/schemas/RepTrainingRule"
+        bicep-curl:
+          $ref: "#/components/schemas/RepTrainingRule"
+        push-up:
+          $ref: "#/components/schemas/RepTrainingRule"
+      required: [squat, bicep-curl, push-up]
+    RepTrainingEvaluationReport:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [insufficient_data, no_improvement, activated]
+        message:
+          type: string
+        trainingSessions:
+          type: integer
+        heldOutSessions:
+          type: integer
+        trainingExamples:
+          type: integer
+        heldOutExamples:
+          type: integer
+        baselineAccuracy:
+          type: ["number", "null"]
+        tunedAccuracy:
+          type: ["number", "null"]
+      required: [status, message, trainingSessions, heldOutSessions, trainingExamples, heldOutExamples, baselineAccuracy, tunedAccuracy]
+    RepTrainingTrackerResponse:
+      type: object
+      properties:
+        version:
+          type: string
+        rules:
+          $ref: "#/components/schemas/RepTrainingRules"
+        report:
+          oneOf:
+            - $ref: "#/components/schemas/RepTrainingEvaluationReport"
+            - type: "null"
+      required: [version, rules, report]

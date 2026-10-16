@@ -189,6 +189,9 @@ export const ListRepTrainingExamplesResponse = zod.object({
   "visibility": zod.number().min(listRepTrainingExamplesResponseExamplesItemFramesItemLandmarksItemVisibilityMin).max(listRepTrainingExamplesResponseExamplesItemFramesItemLandmarksItemVisibilityMax)
 })).min(listRepTrainingExamplesResponseExamplesItemFramesItemLandmarksMin).max(listRepTrainingExamplesResponseExamplesItemFramesItemLandmarksMax)
 })),
+  "sessionId": zod.string().nullish(),
+  "expectedCount": zod.number().int().nullish(),
+  "trackerVersion": zod.string().optional(),
   "createdAt": zod.coerce.date()
 })),
   "limit": zod.number().int(),
@@ -224,10 +227,17 @@ export const createRepTrainingExampleBodyFramesItemLandmarksMax = 6;
 export const createRepTrainingExampleBodyFramesMin = 3;
 export const createRepTrainingExampleBodyFramesMax = 40;
 
+export const createRepTrainingExampleBodySessionIdMax = 64;
+
+export const createRepTrainingExampleBodyExpectedCountMin = 0;
+export const createRepTrainingExampleBodyExpectedCountMax = 20;
+
+export const createRepTrainingExampleBodyTrackerVersionMax = 100;
+
 
 
 export const CreateRepTrainingExampleBody = zod.object({
-  "exercise": zod.enum(['squat', 'push-up']),
+  "exercise": zod.enum(['squat', 'push-up', 'bicep-curl']),
   "label": zod.enum(['correct', 'incorrect']),
   "consent": zod.literal(true),
   "source": zod.enum(['counted', 'missed']),
@@ -241,7 +251,10 @@ export const CreateRepTrainingExampleBody = zod.object({
   "y": zod.number().min(createRepTrainingExampleBodyFramesItemLandmarksItemYMin).max(createRepTrainingExampleBodyFramesItemLandmarksItemYMax),
   "visibility": zod.number().min(createRepTrainingExampleBodyFramesItemLandmarksItemVisibilityMin).max(createRepTrainingExampleBodyFramesItemLandmarksItemVisibilityMax)
 })).min(createRepTrainingExampleBodyFramesItemLandmarksMin).max(createRepTrainingExampleBodyFramesItemLandmarksMax)
-})).min(createRepTrainingExampleBodyFramesMin).max(createRepTrainingExampleBodyFramesMax)
+})).min(createRepTrainingExampleBodyFramesMin).max(createRepTrainingExampleBodyFramesMax),
+  "sessionId": zod.string().max(createRepTrainingExampleBodySessionIdMax).optional(),
+  "expectedCount": zod.number().int().min(createRepTrainingExampleBodyExpectedCountMin).max(createRepTrainingExampleBodyExpectedCountMax).optional(),
+  "trackerVersion": zod.string().max(createRepTrainingExampleBodyTrackerVersionMax).optional()
 })
 
 export const CreateRepTrainingExampleResponse = zod.object({
@@ -259,6 +272,90 @@ export const DeleteRepTrainingExamplesHeader = zod.object({
 
 export const DeleteRepTrainingExamplesResponse = zod.object({
   "deletedCount": zod.number().int()
+})
+
+
+/**
+ * @summary Read the contributor's active tracker rules and last evaluation
+ */
+export const GetRepTrainingTrackerHeader = zod.object({
+  "X-Contributor-Token": zod.string().uuid()
+})
+
+export const GetRepTrainingTrackerResponse = zod.object({
+  "version": zod.string(),
+  "rules": zod.object({
+  "squat": zod.object({
+  "extended": zod.number(),
+  "bent": zod.number(),
+  "visibility": zod.number(),
+  "cooldownMs": zod.number().int()
+}),
+  "bicep-curl": zod.object({
+  "extended": zod.number(),
+  "bent": zod.number(),
+  "visibility": zod.number(),
+  "cooldownMs": zod.number().int()
+}),
+  "push-up": zod.object({
+  "extended": zod.number(),
+  "bent": zod.number(),
+  "visibility": zod.number(),
+  "cooldownMs": zod.number().int()
+})
+}),
+  "report": zod.union([zod.object({
+  "status": zod.enum(['insufficient_data', 'no_improvement', 'activated']),
+  "message": zod.string(),
+  "trainingSessions": zod.number().int(),
+  "heldOutSessions": zod.number().int(),
+  "trainingExamples": zod.number().int(),
+  "heldOutExamples": zod.number().int(),
+  "baselineAccuracy": zod.number().nullable(),
+  "tunedAccuracy": zod.number().nullable()
+}),zod.null()])
+})
+
+
+/**
+ * @summary Compare current and tuned rules on session-separated labeled examples
+ */
+export const EvaluateRepTrainingTrackerHeader = zod.object({
+  "X-Contributor-Token": zod.string().uuid()
+})
+
+export const EvaluateRepTrainingTrackerResponse = zod.object({
+  "version": zod.string(),
+  "rules": zod.object({
+  "squat": zod.object({
+  "extended": zod.number(),
+  "bent": zod.number(),
+  "visibility": zod.number(),
+  "cooldownMs": zod.number().int()
+}),
+  "bicep-curl": zod.object({
+  "extended": zod.number(),
+  "bent": zod.number(),
+  "visibility": zod.number(),
+  "cooldownMs": zod.number().int()
+}),
+  "push-up": zod.object({
+  "extended": zod.number(),
+  "bent": zod.number(),
+  "visibility": zod.number(),
+  "cooldownMs": zod.number().int()
+})
+}),
+  "report": zod.union([zod.object({
+  "status": zod.enum(['insufficient_data', 'no_improvement', 'activated']),
+  "message": zod.string(),
+  "trainingSessions": zod.number().int(),
+  "heldOutSessions": zod.number().int(),
+  "trainingExamples": zod.number().int(),
+  "heldOutExamples": zod.number().int(),
+  "baselineAccuracy": zod.number().nullable(),
+  "tunedAccuracy": zod.number().nullable()
+}),zod.null()])
 })
 
 

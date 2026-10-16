@@ -31,6 +31,7 @@ import type {
   RepTrainingExampleInput,
   RepTrainingExampleReceipt,
   RepTrainingExamplesResponse,
+  RepTrainingTrackerResponse,
   RequestTrainingVideoUpload201,
   TrainingVideo,
   TrainingVideoInput
@@ -1184,5 +1185,156 @@ export const useDeleteRepTrainingExamples = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getDeleteRepTrainingExamplesMutationOptions(options));
+    }
+
+export const getGetRepTrainingTrackerUrl = () => {
+
+
+
+
+  return `/api/rep-training/tracker`
+}
+
+/**
+ * @summary Read the contributor's active tracker rules and last evaluation
+ */
+export const getRepTrainingTracker = async ( options?: Parameters<typeof customFetch>[1]): Promise<RepTrainingTrackerResponse> => {
+
+  return customFetch<RepTrainingTrackerResponse>(getGetRepTrainingTrackerUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRepTrainingTrackerQueryKey = () => {
+    return [
+    `/api/rep-training/tracker`
+    ] as const;
+    }
+
+
+export const getGetRepTrainingTrackerQueryOptions = <TData = Awaited<ReturnType<typeof getRepTrainingTracker>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRepTrainingTracker>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRepTrainingTrackerQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRepTrainingTracker>>> = ({ signal }) => getRepTrainingTracker({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRepTrainingTracker>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRepTrainingTrackerQueryResult = NonNullable<Awaited<ReturnType<typeof getRepTrainingTracker>>>
+export type GetRepTrainingTrackerQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Read the contributor's active tracker rules and last evaluation
+ */
+
+export function useGetRepTrainingTracker<TData = Awaited<ReturnType<typeof getRepTrainingTracker>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRepTrainingTracker>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRepTrainingTrackerQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getEvaluateRepTrainingTrackerUrl = () => {
+
+
+
+
+  return `/api/rep-training/tracker`
+}
+
+/**
+ * @summary Compare current and tuned rules on session-separated labeled examples
+ */
+export const evaluateRepTrainingTracker = async ( options?: Parameters<typeof customFetch>[1]): Promise<RepTrainingTrackerResponse> => {
+
+  return customFetch<RepTrainingTrackerResponse>(getEvaluateRepTrainingTrackerUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getEvaluateRepTrainingTrackerMutationKey = () => ['evaluateRepTrainingTracker'] as const;
+
+export const getEvaluateRepTrainingTrackerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof evaluateRepTrainingTracker>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof evaluateRepTrainingTracker>>, TError,void, TContext> => {
+
+const mutationKey = getEvaluateRepTrainingTrackerMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof evaluateRepTrainingTracker>>, void> = () => {
+
+
+          return  evaluateRepTrainingTracker(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EvaluateRepTrainingTrackerMutationResult = NonNullable<Awaited<ReturnType<typeof evaluateRepTrainingTracker>>>
+
+    export type EvaluateRepTrainingTrackerMutationError = ErrorType<unknown>
+
+
+    /**
+ * @summary Compare current and tuned rules on session-separated labeled examples
+ */
+export const useEvaluateRepTrainingTracker = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof evaluateRepTrainingTracker>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof evaluateRepTrainingTracker>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getEvaluateRepTrainingTrackerMutationOptions(options));
     }
 

@@ -12,4 +12,5 @@ export type RepTrainingExampleInputExercise = typeof RepTrainingExampleInputExer
 export const RepTrainingExampleInputExercise = {
   squat: 'squat',
   'push-up': 'push-up',
+  'bicep-curl': 'bicep-curl',
 } as const;
