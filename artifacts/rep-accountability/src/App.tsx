@@ -5,7 +5,8 @@ import { VideoSettings } from '@/contribution/VideoSettings';
 import { TrainingClipRecorder } from '@/contribution/TrainingClipRecorder';
 import { ReviewQueue } from '@/contribution/ReviewQueue';
 import { RepCapture } from '@/contribution/capture';
-import { ExerciseTracker, loadClassifier, type Exercise as ClassifierExercise, type Point as Landmark } from '@/tracking/classifier';
+import { FrontPushupTracker } from '@/tracking/front-pushup';
+import type { Point as Landmark } from '@/tracking/classifier';
 import { getConsent } from '@/contribution/consent';
 import { clearQueue, enqueue, getQueue, isFull, useQueue } from '@/contribution/queue';
 import { useActiveTracker } from '@/contribution/tracker';
@@ -18,7 +19,7 @@ import {
 } from 'lucide-react';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false, refetchOnWindowFocus: false } } });
-type Exercise = ClassifierExercise | 'bicep-curl';
+type Exercise = 'squat' | 'push-up' | 'bicep-curl';
 type WorkoutSession = { id: string; exercise: Exercise; reps: number; startedAt: string; durationSeconds: number };
 type AppData = { sessions: WorkoutSession[]; weeklyWorkoutGoal: number };
 const STORAGE_KEY = 'rep-accountability-v1';
@@ -240,7 +241,7 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
   const streamRef = useRef<MediaStream | null>(null);
   const landmarkerRef = useRef<{ detectForVideo: (video: HTMLVideoElement, timestamp: number) => { landmarks?: Landmark[][] }; close: () => void } | null>(null);
   const rafRef = useRef<number | null>(null);
-  const trackerRef = useRef<ExerciseTracker | null>(null);
+  const trackerRef = useRef<FrontPushupTracker | null>(null);
   const angleStateRef = useRef(initialState());
   const sessionIdRef = useRef<string | null>(null);
   const lastProcessedAt = useRef(-Infinity);
@@ -318,7 +319,11 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
       if (movement.counted) {
         repRef.current += 1; setReps(repRef.current);
         const sample = collecting ? captureRef.current.finishRep(exercise) : null;
-        if (sample && sessionIdRef.current) enqueue({ ...sample, sessionId: sessionIdRef.current, trackerVersion: activeTracker.version });
+        if (sample && sessionIdRef.current) enqueue({
+          ...sample,
+          sessionId: sessionIdRef.current,
+          trackerVersion: exercise === 'push-up' ? 'front-view-arm-angle-v1' : activeTracker.version,
+        });
       }
     } catch {
       stopCamera(); setCameraState('error'); setModelState('error');
@@ -337,10 +342,7 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
     }
     let modelReady = false;
     try {
-      const [vision, classifier] = await Promise.all([
-        import('@mediapipe/tasks-vision'),
-        exercise === 'push-up' ? loadClassifier() : Promise.resolve(null),
-      ]);
+      const vision = await import('@mediapipe/tasks-vision');
       const fileset = await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm');
       if (generation !== generationRef.current) return;
       const options = {
@@ -360,7 +362,7 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
       }
       if (generation !== generationRef.current) { landmarker.close(); return; }
       landmarkerRef.current = landmarker;
-      trackerRef.current = classifier ? new ExerciseTracker(classifier, 'push-up') : null;
+      trackerRef.current = exercise === 'push-up' ? new FrontPushupTracker() : null;
       modelReady = true;
       setModelState('ready');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: nextFacing }, width: { ideal: 960 }, height: { ideal: 720 } } });
@@ -422,8 +424,8 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
       <video ref={videoRef} muted playsInline aria-label="Live camera preview" className={facing === 'environment' ? 'back-camera' : ''} data-testid="video-camera-preview" />
       {cameraState !== 'ready' && <div className="camera-idle">
         <div className="camera-idle-mark">{cameraState === 'error' ? <CameraOff size={26} /> : cameraState === 'loading' ? <Activity size={26} /> : <Video size={26} />}</div>
-        <div className="font-display" style={{ fontSize: 22 }}>{cameraState === 'error' ? 'We couldn’t get you on camera.' : cameraState === 'loading' ? 'Getting your session ready…' : 'A clear side view works best.'}</div>
-        <div style={{ color: 'rgba(255,255,255,.76)', fontSize: 11, maxWidth: 310, lineHeight: 1.6, marginTop: 8 }}>{ended ? 'Camera off. Review your samples below, then return to today.' : cameraState === 'idle' ? `Choose ${exercise === 'squat' ? 'squats' : exercise === 'push-up' ? 'push-ups' : 'bicep curls'}, then allow camera access. Keep your joints clearly in frame. Video stays local unless you upload a training clip.` : cameraState === 'loading' ? 'Loading the on-device pose model, then requesting camera permission.' : error}</div>
+        <div className="font-display" style={{ fontSize: 22 }}>{cameraState === 'error' ? 'We couldn’t get you on camera.' : cameraState === 'loading' ? 'Getting your session ready…' : exercise === 'push-up' ? 'Face the camera for push-ups.' : 'A clear side view works best.'}</div>
+        <div style={{ color: 'rgba(255,255,255,.76)', fontSize: 11, maxWidth: 310, lineHeight: 1.6, marginTop: 8 }}>{ended ? 'Camera off. Review your samples below, then return to today.' : cameraState === 'idle' ? exercise === 'push-up' ? 'Keep your face, shoulders, elbows, wrists, and hands in frame. Start in a high plank and hold your arms extended briefly to calibrate. Your legs do not need to be visible. Video stays local unless you upload a training clip.' : `Choose ${exercise === 'squat' ? 'squats' : 'bicep curls'}, then allow camera access. Keep your joints clearly in frame. Video stays local unless you upload a training clip.` : cameraState === 'loading' ? 'Loading the on-device pose model, then requesting camera permission.' : error}</div>
         {cameraState === 'idle' && !ended && <button onClick={() => void begin()} className="primary-btn" data-testid="button-enable-camera" style={{ marginTop: 18, background: 'var(--brand-lime)', color: 'var(--brand-black)' }}><Camera size={16} /> Allow camera & begin</button>}
         {cameraState === 'error' && <button onClick={() => void begin(facing, startRef.current !== null)} className="primary-btn" data-testid="button-retry-camera" style={{ marginTop: 16 }}><RotateCcw size={15} /> Try again</button>}
       </div>}
@@ -432,15 +434,15 @@ function SessionPage({ save }: { save: (session: WorkoutSession) => void }) {
     </div>
     {error && cameraState === 'error' && <div role="alert" data-testid="status-camera-error" style={{ marginTop: 10, color: 'var(--brand-black)', background: 'var(--brand-orange)', border: '1px solid var(--brand-black)', padding: '12px 14px', borderRadius: 11, fontSize: 12, lineHeight: 1.5 }}>{error}</div>}
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 13 }}>
-      <div className="panel" style={{ padding: 17 }}><div className="small-label">REPS COUNTED</div><div className="mono-value" style={{ fontSize: 43, lineHeight: 1.15, marginTop: 5 }} data-testid="value-live-reps">{reps}</div><div className="subtle" style={{ fontSize: 9, marginTop: 5 }}>Tracker {exercise === 'push-up' ? 'on-device classifier' : activeTracker.version}</div></div>
-      <div className="panel" style={{ padding: 17 }}><div className="small-label">MOVEMENT PHASE</div><div style={{ fontWeight: 800, fontSize: 15, marginTop: 12, minHeight: 22 }} data-testid="status-movement-phase">{phase}</div><div className="subtle" style={{ fontSize: 10, marginTop: 5 }} data-testid="status-model">{modelState === 'ready' ? 'Google pose examples · local classifier' : modelState === 'error' ? 'Pose model unavailable' : modelState === 'loading' ? 'Loading pose model…' : 'Waiting for camera permission'}</div></div>
+      <div className="panel" style={{ padding: 17 }}><div className="small-label">REPS COUNTED</div><div className="mono-value" style={{ fontSize: 43, lineHeight: 1.15, marginTop: 5 }} data-testid="value-live-reps">{reps}</div><div className="subtle" style={{ fontSize: 9, marginTop: 5 }}>Tracker {exercise === 'push-up' ? 'front-view arm tracker' : activeTracker.version}</div></div>
+      <div className="panel" style={{ padding: 17 }}><div className="small-label">MOVEMENT PHASE</div><div style={{ fontWeight: 800, fontSize: 15, marginTop: 12, minHeight: 22 }} data-testid="status-movement-phase">{phase}</div><div className="subtle" style={{ fontSize: 10, marginTop: 5 }} data-testid="status-model">{modelState === 'ready' ? exercise === 'push-up' ? 'On-device front-view arm tracking' : 'Google pose examples · local classifier' : modelState === 'error' ? 'Pose model unavailable' : modelState === 'loading' ? 'Loading pose model…' : 'Waiting for camera permission'}</div></div>
     </div>
     <div className="panel" style={{ padding: 18, marginTop: 13 }}>
       <div className="small-label">WHAT COUNTS AS A REP</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
         {(exercise === 'squat' ? ['Stand tall', 'Lower with control', 'Stand tall again'] : exercise === 'push-up' ? ['High plank', 'Lower your body', 'Push back up'] : ['Arm extended', 'Curl up', 'Extend again']).map((label, i) => <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 7 }}><span style={{ width: 22, height: 22, borderRadius: 8, background: i === 1 ? 'var(--brand-lime)' : 'var(--brand-white)', border: '1px solid rgba(0,0,0,.14)', color: 'var(--brand-black)', display: 'grid', placeItems: 'center', font: '10px var(--app-font-mono)' }}>{i + 1}</span><span style={{ fontSize: 10, fontWeight: 700 }}>{label}</span>{i < 2 && <ArrowRight size={12} color="var(--brand-orange)" />}</div>)}
       </div>
-      <p className="subtle" style={{ fontSize: 11, lineHeight: 1.6, marginTop: 12 }}>{exercise === 'push-up' ? <>Matches your pose to local push-up examples, smooths the results, and counts an up → down → up cycle. <a href="https://github.com/google-ai-edge/mediapipe/blob/master/docs/solutions/pose_classification.md" target="_blank" rel="noreferrer" style={{ color: 'inherit' }}>About the reference approach</a>. Camera framing still affects recognition.</> : 'Squats and curls use the active, locally tuned angle thresholds shown above. Camera framing still affects recognition.'}</p>
+      <p className="subtle" style={{ fontSize: 11, lineHeight: 1.6, marginTop: 12 }}>{exercise === 'push-up' ? 'Uses the visible face and shoulder–elbow–wrist angles. Hold a front-facing high plank briefly to calibrate; a rep is counted when your arms bend and return to your calibrated extended position. Hips and legs do not need to be in frame.' : 'Squats and curls use the active, locally tuned angle thresholds shown above. Camera framing still affects recognition.'}</p>
     </div>
     {exercise !== 'bicep-curl' && <TrainingClipRecorder exercise={exercise} cameraActive={cameraState === 'ready'} getStream={getStream} getReps={getReps} onPendingChange={onClipPending} />}
     <ReviewQueue canFlag={cameraState === 'ready'} onFlagMissed={flagMissed} />
