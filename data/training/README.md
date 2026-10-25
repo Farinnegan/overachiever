@@ -7,3 +7,7 @@ Exported from the Replit production database on 2026-10-25 after the repository 
 - Account profiles, authentication sessions, owner IDs, contributor hashes, storage object paths, and session IDs are excluded.
 
 Pose coordinates and repetition-feedback data are movement data and are public in this repository.
+
+## Using it now
+
+These samples were recorded with the old Replit app (4 frames per second, cut to a single rep). `npm run replay` runs them through the current trackers, and `tests/recorded-data.test.ts` checks them on every push. New sessions are recorded by the app itself and exported from Settings.

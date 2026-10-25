@@ -1,5 +1,0 @@
-- [Generated API naming](generated-api-naming.md) — response component names must not collide with operation-derived Zod exports.
-- [Glob dependency safety](glob-dependency-safety.md) — avoid restoring braces-based glob libraries without confirming a patched release.
-- [Camera placement evidence](camera-placement-evidence.md) — floor-level counted accurately; body-height missed counts, but saved successes alone cannot explain why.
-- [Camera browser testing](camera-browser-testing.md) — headless WebGL limitations can block pose inference while recording/storage still work; report test boundaries.
-- [Production schema drift](production-schema-drift.md) — inspect live production columns before exports; the deployed schema may lag development.
