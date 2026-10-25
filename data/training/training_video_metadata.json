@@ -1,0 +1,19 @@
+{
+  "format": "overachiever-training-video-metadata-v1",
+  "source": "Replit production database",
+  "exportedAt": "2026-10-25",
+  "records": [
+    {
+      "videoId": "clip-001",
+      "exercise": "push-up",
+      "expectedReps": 4,
+      "countedReps": 0,
+      "cameraPlacement": "floor",
+      "durationMs": 15000,
+      "sizeBytes": 2656976,
+      "contentType": "video/mp4",
+      "consentVersion": "video-training-v1",
+      "createdAt": "2026-10-16T19:43:31.327021+00:00"
+    }
+  ]
+}
