@@ -7,6 +7,7 @@ out-tsc
 *.tsbuildinfo
 .expo
 .expo-shared
+/generated-artifacts/
 
 # dependencies
 node_modules
@@ -47,3 +48,4 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+/.agents/agent_assets_metadata.toml
