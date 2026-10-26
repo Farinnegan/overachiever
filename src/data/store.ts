@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import type { Exercise } from '../tracking/types.ts';
 
 /** A tiny localStorage-backed store that React components can subscribe to. */
-function createStore<T>(key: string, fallback: T, parse: (raw: unknown) => T) {
+export function createStore<T>(key: string, fallback: T, parse: (raw: unknown) => T) {
   const listeners = new Set<() => void>();
   let state: T = fallback;
   try { state = parse(JSON.parse(localStorage.getItem(key) || 'null')); } catch { /* use fallback */ }

@@ -90,15 +90,15 @@ export async function clearPoseLogs() {
 
 /** Summary of saved logs for the Settings page. */
 export function usePoseLogSummary() {
-  const [summary, setSummary] = useState<{ count: number; byExercise: Partial<Record<Exercise, number>> } | null>(null);
+  const [summary, setSummary] = useState<{ count: number; ids: string[]; byExercise: Partial<Record<Exercise, number>> } | null>(null);
   useEffect(() => {
     const load = () => listPoseLogs()
       .then((logs) => {
         const byExercise: Partial<Record<Exercise, number>> = {};
         for (const l of logs) byExercise[l.exercise] = (byExercise[l.exercise] ?? 0) + 1;
-        setSummary({ count: logs.length, byExercise });
+        setSummary({ count: logs.length, ids: logs.map((l) => l.id), byExercise });
       })
-      .catch(() => setSummary({ count: 0, byExercise: {} }));
+      .catch(() => setSummary({ count: 0, ids: [], byExercise: {} }));
     load();
     listeners.add(load);
     return () => { listeners.delete(load); };

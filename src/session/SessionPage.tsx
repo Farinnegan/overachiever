@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { Activity, ArrowLeft, ArrowRight, Camera, CameraOff, Check, Flag, Minus, Plus, RotateCcw, SwitchCamera, X } from 'lucide-react';
 import { saveSession, updateSettings, useSettings } from '../data/store.ts';
 import { PoseLogger, savePoseLog } from '../data/poseLogs.ts';
+import { uploadPending } from '../data/sync.ts';
 import { createTracker, EXERCISES, TRACKER_VERSION, type TrackResult, type Tracker } from '../tracking/exercises.ts';
 import { EXERCISE_IDS, type Exercise } from '../tracking/types.ts';
 import { loadPoseModel, type Landmarker } from './pose-model.ts';
@@ -211,6 +212,7 @@ export function SessionPage() {
           id: `${began.getTime()}`, exercise, startedAt: began.toISOString(), aspect: aspectRef.current,
           trackerVersion: TRACKER_VERSION, countedReps: counted, actualReps: actual, placement,
         }));
+        void uploadPending(); // keeps running in the background after we leave this page
       } catch { /* pose data is optional */ }
     }
     if (keepPose !== prefs.keepPoseData) updateSettings({ keepPoseData: keepPose });

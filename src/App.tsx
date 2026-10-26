@@ -12,6 +12,8 @@ import {
 import { clearPoseLogs, listPoseLogs, usePoseLogSummary } from './data/poseLogs.ts';
 import { EXERCISES } from './tracking/exercises.ts';
 import { SessionPage } from './session/SessionPage.tsx';
+import { SyncSettings } from './SyncSettings.tsx';
+import { isSyncConfigured, uploadPending } from './data/sync.ts';
 
 const localDay = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 const mondayStart = (date: Date) => {
@@ -250,6 +252,8 @@ function SettingsPage() {
       </div>
     </section>
 
+    <SyncSettings />
+
     <section className="panel setting">
       <div className="icon-tile"><History size={18} /></div>
       <div style={{ flex: 1 }}>
@@ -269,7 +273,7 @@ function SettingsPage() {
 
     <p className="subtle" style={{ fontSize: 11, lineHeight: 1.6, marginTop: 22, display: 'flex', gap: 8 }}>
       <LockKeyhole size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-      There’s no server. Pose detection runs on your phone, the camera feed never leaves it, and everything you save stays in this browser until you export it.
+      There’s no server. Pose detection runs on your phone and the camera feed never leaves it. Workout history stays in this browser; pose data goes to GitHub only if you connect it above.
     </p>
   </main>;
 }
@@ -279,7 +283,10 @@ function NotFound() {
 }
 
 export default function App() {
-  useEffect(() => { void navigator.storage?.persist?.().catch(() => undefined); }, []);
+  useEffect(() => {
+    void navigator.storage?.persist?.().catch(() => undefined);
+    if (isSyncConfigured()) void uploadPending(); // retry anything that failed while offline
+  }, []);
   return <Router hook={useHashLocation}>
     <Shell><Switch>
       <Route path="/"><Dashboard /></Route>
