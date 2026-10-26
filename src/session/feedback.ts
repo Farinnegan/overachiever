@@ -37,6 +37,30 @@ export function announceRep(n: number, mode: RepSound) {
   } catch { /* sound is optional */ }
 }
 
+/** Spoken or beeped warning that the camera has lost you mid-set. */
+export function announceLost(mode: RepSound) {
+  try {
+    if (mode === 'voice' && 'speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance('I can’t see you. Get your head and shoulders in the frame.');
+      u.rate = 1.1;
+      speechSynthesis.speak(u);
+    } else if (mode === 'beep' && audio) {
+      for (const [i, f] of [[0, 330], [1, 262]] as const) {
+        const osc = audio.createOscillator();
+        const gain = audio.createGain();
+        const at = audio.currentTime + i * 0.22;
+        osc.frequency.value = f;
+        gain.gain.setValueAtTime(0.25, at);
+        gain.gain.exponentialRampToValueAtTime(0.001, at + 0.2);
+        osc.connect(gain).connect(audio.destination);
+        osc.start(at);
+        osc.stop(at + 0.21);
+      }
+    }
+  } catch { /* sound is optional */ }
+}
+
 /** Keep the screen on during a workout. Silently does nothing where unsupported. */
 export async function keepScreenOn(): Promise<() => void> {
   try {

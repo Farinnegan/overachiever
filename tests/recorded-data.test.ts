@@ -48,8 +48,9 @@ test('2026-10-26 push-ups: 10 of 10', () => {
   assert.equal(recount(session('2026-10-26_1330_push-up_1793010611090.json')), 10);
 });
 
-test('2026-10-26 side leg raises: the 7 visible lifts, nothing during 2.5 minutes of setup', () => {
-  // Logged as 10. The pose data shows 7 clear lifts at 2:33-2:51 (lying on the right side,
-  // knees bent, hip angle opening ~28 degrees each time); everything before is getting into position.
+test('2026-10-26 leg raises: all 7 reps the camera could see, nothing during setup', () => {
+  // Checked against Fal's video clips: 12 single-leg bridges in this session. 5 in the living room
+  // (~1:35-1:46) were never detected because only her legs were in frame, so the pose model found
+  // no person. The 7 in the second room (2:33-2:51) are all counted; the setup in between is not.
   assert.equal(recount(session('2026-10-26_1326_side-leg-raise_1793010407877.json')), 7);
 });

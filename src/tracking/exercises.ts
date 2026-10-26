@@ -149,10 +149,10 @@ export const EXERCISES: Record<Exercise, ExerciseDef> = {
     sides: [{ joints: LEFT_LEG, measure: leftHipAngle }, { joints: RIGHT_LEG, measure: rightHipAngle }],
     anchor: shoulderAnchor,
     counter: { direction: 'either', scale: 'degrees', trigger: 15, release: 6, stableTolerance: 8, isValidRest: (r) => r >= 120 },
-    setup: 'Phone on the floor facing you, lying on your side or standing. Shoulders, hips and knees in frame. Feet can be out.',
+    setup: 'Phone on the floor a couple of meters away, side-on to you. Your whole body needs to be in frame, head included: the pose model can’t find you from legs alone.',
     steps: ['Start position', 'Lift', 'Lower back down'],
     text: {
-      searching: 'Get your shoulders, hips and knees in view',
+      searching: 'Get your head, shoulders, hips and knees in view',
       position: 'Get into your start position',
       calibrating: 'Hold still for a second…',
       ready: 'Ready · raise your leg',

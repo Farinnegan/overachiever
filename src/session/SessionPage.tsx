@@ -8,12 +8,13 @@ import { createTracker, EXERCISES, TRACKER_VERSION, type TrackResult, type Track
 import { EXERCISE_IDS, type Exercise } from '../tracking/types.ts';
 import { loadPoseModel, type Landmarker } from './pose-model.ts';
 import { drawPose } from './overlay.ts';
-import { announceRep, keepScreenOn, unlockSound } from './feedback.ts';
+import { announceLost, announceRep, keepScreenOn, unlockSound } from './feedback.ts';
 import { ClipRecorder } from './ClipRecorder.tsx';
 
 type Stage = 'setup' | 'loading' | 'live' | 'review';
 type Placement = 'floor' | 'low' | 'body' | 'other';
 const LAST_EXERCISE = 'overachiever-last-exercise';
+const LOST_AFTER_MS = 3000;
 const PLACEMENTS: { id: Placement; label: string }[] = [
   { id: 'floor', label: 'On the floor' },
   { id: 'low', label: 'Low (shin or knee height)' },
@@ -64,6 +65,10 @@ export function SessionPage() {
   const lastProcessed = useRef(-Infinity);
   const lastVideoTime = useRef(-1);
   const aspectRef = useRef(0.75);
+  // Lost-tracking warning: only after it has seen you in position once, then at most every 12s.
+  const trackedAt = useRef<number | null>(null);
+  const lostWarnedAt = useRef(-Infinity);
+  const [lost, setLost] = useState(false);
   const soundRef = useRef(prefs.repSound);
   soundRef.current = prefs.repSound;
 
@@ -109,6 +114,17 @@ export function SessionPage() {
         aspectRef.current = aspect;
         const out = tracker.update(points, aspect, now);
         loggerRef.current.add(points, now);
+        if (out.rest !== null) trackedAt.current = now; // has locked onto your start position
+        if (out.status !== 'searching') {
+          if (trackedAt.current !== null) trackedAt.current = now;
+          setLost(false);
+        } else if (trackedAt.current !== null && now - trackedAt.current > LOST_AFTER_MS) {
+          setLost(true);
+          if (now - lostWarnedAt.current > 12000) {
+            lostWarnedAt.current = now;
+            announceLost(soundRef.current);
+          }
+        }
         if (canvasRef.current) drawPose(canvasRef.current, video, points, tracker.def.joints, out.status === 'bottom');
         if (out.counted) {
           repRef.current += 1;
@@ -164,6 +180,8 @@ export function SessionPage() {
       }
       lastProcessed.current = -Infinity;
       lastVideoTime.current = -1;
+      trackedAt.current = null;
+      setLost(false);
       setTrack(null);
       releaseWake.current = await keepScreenOn();
       setStage('live');
@@ -277,7 +295,7 @@ export function SessionPage() {
       {live && <>
         <div className="camera-overlay" />
         <div className="live-count" key={flash}>{reps}</div>
-        <div className="live-status">{track?.text ?? def.text.searching}</div>
+        <div className={`live-status${lost ? ' lost' : ''}`}>{lost ? 'I can’t see you · get your head and shoulders in frame' : track?.text ?? def.text.searching}</div>
         <button className="camera-control" style={{ position: 'absolute', right: 12, top: 12 }} onClick={() => void start(facing === 'user' ? 'environment' : 'user', true)} aria-label="Switch camera"><SwitchCamera size={17} /></button>
       </>}
       {!live && <div className="camera-idle">
