@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { EXERCISES } from '../src/tracking/exercises.ts';
-import { fromLegacyRecord, replayCount, type LegacyRecord } from '../src/tracking/replay.ts';
+import { fromLegacyRecord, fromPoseLog, replayCount, type LegacyRecord, type PoseLog } from '../src/tracking/replay.ts';
 
 /**
  * Real movement recorded on Fal's phone with the old Replit app (data/training).
@@ -37,4 +37,19 @@ test('every squat labelled correct that starts standing counts exactly one rep',
   assert.ok(correct.length >= 10, `expected at least 10 usable squat samples, got ${correct.length}`);
   const off = correct.map((r) => ({ id: r.recordId, counted: count(r) })).filter((r) => r.counted !== 1);
   assert.deepEqual(off, []);
+});
+
+// ---------- Sessions uploaded from the phone (data/sessions) ----------
+
+const session = (name: string) => JSON.parse(readFileSync(new URL(`../data/sessions/${name}`, import.meta.url), 'utf8')) as PoseLog;
+const recount = (log: PoseLog) => replayCount(log.exercise, fromPoseLog(log), log.aspect).counted;
+
+test('2026-10-26 push-ups: 10 of 10', () => {
+  assert.equal(recount(session('2026-10-26_1330_push-up_1793010611090.json')), 10);
+});
+
+test('2026-10-26 side leg raises: the 7 visible lifts, nothing during 2.5 minutes of setup', () => {
+  // Logged as 10. The pose data shows 7 clear lifts at 2:33-2:51 (lying on the right side,
+  // knees bent, hip angle opening ~28 degrees each time); everything before is getting into position.
+  assert.equal(recount(session('2026-10-26_1326_side-leg-raise_1793010407877.json')), 7);
 });

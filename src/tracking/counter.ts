@@ -9,8 +9,8 @@ import { clamp, median, percentile } from './geometry.ts';
  * moves far enough away from rest and comes back.
  */
 export type CounterConfig = {
-  /** Which way the value moves during a rep: 'down' (it shrinks) or 'up' (it grows). */
-  direction: 'down' | 'up';
+  /** Which way the value moves during a rep: 'down' (it shrinks), 'up' (it grows), or 'either'. */
+  direction: 'down' | 'up' | 'either';
   /** 'degrees': trigger/release are absolute amounts. 'ratio': they are fractions of rest. */
   scale: 'degrees' | 'ratio';
   /** How far from rest counts as the bottom of the rep. */
@@ -99,7 +99,11 @@ export class CycleCounter {
     this.smooth = this.smooth === null ? m : this.smooth + 0.6 * (m - this.smooth);
     const v = this.smooth;
 
-    if (this.stage === 'up') {
+    // For 'either', only frames near the current rest teach it where rest is, otherwise
+    // back-to-back reps drag the rest value into the middle of the movement.
+    const nearRest = c.direction !== 'either' || this.rest === null || !this.calibrated ||
+      Math.abs(v - this.rest) <= this.amount(c.release, this.rest);
+    if (this.stage === 'up' && nearRest) {
       this.window.push({ t: now, v });
       while (this.window.length > 1 && now - this.window[0]!.t > c.restWindowMs) this.window.shift();
     }
@@ -125,7 +129,7 @@ export class CycleCounter {
     }
 
     if (this.stage === 'up') {
-      this.rest = percentile(this.window.map((s) => s.v), c.direction === 'down' ? 0.85 : 0.15);
+      this.rest = percentile(this.window.map((s) => s.v), c.direction === 'down' ? 0.85 : c.direction === 'up' ? 0.15 : 0.5);
       if (!c.isValidRest(this.rest)) {
         // You left the starting position (stood up, sat down, walked away). Learn it again.
         this.calibrated = false;
@@ -136,8 +140,7 @@ export class CycleCounter {
     }
 
     const rest = this.rest!;
-    const dir = c.direction === 'down' ? 1 : -1;
-    const dev = (rest - v) * dir; // positive = moving into the rep
+    const dev = this.deviation(v, rest); // positive = moving into the rep
     const trigger = this.amount(c.trigger, rest);
     const release = this.amount(c.release, rest);
 
@@ -168,12 +171,19 @@ export class CycleCounter {
     return this.output(false, dev >= trigger ? 'bottom' : 'returning', v);
   }
 
+  /** How far into the rep the value is: positive means moving the rep's way. */
+  private deviation(v: number, rest: number) {
+    const d = this.cfg.direction;
+    return d === 'down' ? rest - v : d === 'up' ? v - rest : Math.abs(v - rest);
+  }
+
   private output(counted: boolean, status: CounterStatus, value: number | null): CounterOutput {
     const rest = this.rest;
     if (rest === null || value === null) {
       return { counted, status, value, rest: null, bottomLine: null, releaseLine: null, progress: 0 };
     }
-    const dir = this.cfg.direction === 'down' ? 1 : -1;
+    const d = this.cfg.direction;
+    const dir = d === 'down' ? 1 : d === 'up' ? -1 : value <= rest ? 1 : -1;
     const trigger = this.amount(this.cfg.trigger, rest);
     const release = this.amount(this.cfg.release, rest);
     return {
@@ -183,7 +193,7 @@ export class CycleCounter {
       rest,
       bottomLine: rest - dir * trigger,
       releaseLine: rest - dir * release,
-      progress: clamp(((rest - value) * dir) / trigger, 0, 1),
+      progress: clamp(this.deviation(value, rest) / trigger, 0, 1),
     };
   }
 }

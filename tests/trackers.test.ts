@@ -29,10 +29,29 @@ function squat(depth: number): Point[] {
   return pose({ 23: hip, 25: kneePt, 27: ankle, 24: [hip[0] + 0.01, hip[1]], 26: [kneePt[0] + 0.01, kneePt[1]], 28: [ankle[0] + 0.01, ankle[1]] });
 }
 
-/** Side leg raise, front view. `lift` 0 = legs together, 1 = leg raised ~45 degrees. */
+/** Standing side leg raise, front view. `lift` 0 = legs together, 1 = right leg out ~40 degrees. */
 function legRaise(lift: number): Point[] {
-  const a = (45 * lift * Math.PI) / 180;
-  return pose({ 23: [0.55, 0.5], 24: [0.45, 0.5], 25: [0.56, 0.7], 26: [0.45 - Math.sin(a) * 0.2 / ASPECT, 0.5 + Math.cos(a) * 0.2] });
+  const a = (40 * lift * Math.PI) / 180;
+  return pose({
+    11: [0.57, 0.25], 12: [0.43, 0.25],
+    23: [0.55, 0.5], 24: [0.45, 0.5], 25: [0.56, 0.7], 26: [0.45 - Math.sin(a) * 0.2 / ASPECT, 0.5 + Math.cos(a) * 0.2],
+  });
+}
+
+/**
+ * Lying on the right side, head on the left of the frame, phone on the floor.
+ * Only the top (right) side is clearly visible; the bottom knee is half hidden and noisy.
+ * `lift` raises the pelvis and swings the thigh, opening the hip angle ~28 degrees.
+ */
+function sideLying(lift: number, shoulderShift = 0, rand = Math.random): Point[] {
+  const a = ((45 - 28 * lift) * Math.PI) / 180; // thigh angle above horizontal
+  const hip: [number, number] = [0.58, 0.61 - 0.05 * lift];
+  const knee: [number, number] = [hip[0] + Math.cos(a) * 0.32 / ASPECT * 0.75, hip[1] - Math.sin(a) * 0.32];
+  const p = pose({ 0: [0.08 + shoulderShift, 0.6], 12: [0.15 + shoulderShift, 0.64], 24: hip, 26: knee });
+  p[11] = { x: 0.16 + shoulderShift, y: 0.65, visibility: 0.9 };
+  p[23] = { x: hip[0] - 0.01, y: hip[1] + 0.01, visibility: 0.9 };
+  p[25] = { x: knee[0] - 0.05 + rand() * 0.06, y: knee[1] + 0.03 + rand() * 0.08, visibility: 0.35 }; // hidden bottom knee
+  return p;
 }
 
 /** Feed a depth profile through a tracker and return the rep count. */
@@ -89,9 +108,25 @@ test('push-up: standing up does not count as a rep', () => {
   assert.equal(reps, 0);
 });
 
-test('side leg raise: reports position until legs are together', () => {
+test('side leg raise lying on your side: counts with the bottom knee hidden', () => {
+  let seed = 3;
+  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  assert.equal(run('side-leg-raise', (d) => sideLying(d, 0, rand), profile(8, 1, 2600)), 8);
+});
+
+test('side leg raise lying on your side: smaller lifts still count', () => {
+  assert.equal(run('side-leg-raise', (d) => sideLying(d), profile(5, 0.7, 2600)), 5);
+});
+
+test('side leg raise: shuffling into position does not count', () => {
+  // Calibrate lying down, then slide the shoulders around while the hip angle swings.
   const tracker = createTracker('side-leg-raise');
-  let last = tracker.update(legRaise(1.2), ASPECT, 0);
-  for (let t = STEP; t < 1000; t += STEP) last = tracker.update(legRaise(1.2), ASPECT, t);
-  assert.equal(last.status, 'position');
+  let t = 0, reps = 0;
+  for (let i = 0; i < 25; i++) { tracker.update(sideLying(0), ASPECT, t); t += STEP; }
+  for (let i = 0; i < 60; i++) {
+    const shift = Math.min(0.3, i * 0.01);
+    if (tracker.update(sideLying(Math.abs(Math.sin(i / 6)), shift), ASPECT, t).counted) reps++;
+    t += STEP;
+  }
+  assert.equal(reps, 0);
 });
