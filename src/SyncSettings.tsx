@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CloudUpload, ExternalLink, Unplug } from 'lucide-react';
-import { usePoseLogSummary } from './data/poseLogs.ts';
+import { Link } from 'wouter';
+import { usePoseLogIds } from './data/poseLogs.ts';
 import { connect, DEFAULT_REPO, disconnect, uploadPending, useSyncConfig, useSyncStatus, useUploadedIds } from './data/sync.ts';
 
 const TOKEN_PAGE = 'https://github.com/settings/personal-access-tokens/new';
@@ -9,14 +10,14 @@ export function SyncSettings() {
   const cfg = useSyncConfig();
   const status = useSyncStatus();
   const uploadedIds = useUploadedIds();
-  const logs = usePoseLogSummary();
+  const ids = usePoseLogIds();
   const [token, setToken] = useState('');
   const [repo, setRepo] = useState(DEFAULT_REPO);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const done = new Set(uploadedIds);
-  const waiting = logs?.ids.filter((id) => !done.has(id)).length ?? 0;
+  const waiting = ids?.filter((id) => !done.has(id)).length ?? 0;
 
   const submit = async () => {
     setBusy(true); setError(null);
@@ -30,7 +31,7 @@ export function SyncSettings() {
     <div style={{ flex: 1, minWidth: 0 }}>
       <div className="setting-title">Send pose data to GitHub</div>
       {cfg ? <>
-        <p className="subtle setting-text">Each workout’s joint positions upload to <b>{cfg.repo}</b> in <span className="mono-value">data/sessions/</span> right after you save it. Videos never upload.</p>
+        <p className="subtle setting-text">Every workout’s joint positions upload to <b>{cfg.repo}</b> in <span className="mono-value">data/sessions/</span> the moment you save it, and retry on their own if the connection drops. Videos never upload.</p>
         <div style={{ fontSize: 12 }}>
           {waiting === 0 ? 'Everything is uploaded.' : `${waiting} session${waiting === 1 ? '' : 's'} waiting to upload.`}
         </div>
@@ -55,4 +56,24 @@ export function SyncSettings() {
       </>}
     </div>
   </section>;
+}
+
+/** Today-screen reminder: is every saved workout on GitHub? Says why not if it isn't. */
+export function SyncBanner() {
+  const cfg = useSyncConfig();
+  const status = useSyncStatus();
+  const uploadedIds = useUploadedIds();
+  const ids = usePoseLogIds();
+  if (!cfg) {
+    return <div className="notice bad" style={{ marginTop: 14 }}>
+      GitHub sync is off, so workouts stay on this phone only. <Link href="/settings" className="text-link">Connect it in Settings</Link> and every set uploads right after you save it.
+    </div>;
+  }
+  const done = new Set(uploadedIds);
+  const waiting = ids?.filter((id) => !done.has(id)).length ?? 0;
+  if (waiting === 0 && !status.busy) return null;
+  return <div className={`notice${status.bad ? ' bad' : ''}`} style={{ marginTop: 14 }}>
+    {status.busy ? status.message : `${waiting} session${waiting === 1 ? '' : 's'} not uploaded yet. ${status.message ?? ''}`}
+    {!status.busy && <> <button className="text-link" style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }} onClick={() => void uploadPending()}>Retry now</button></>}
+  </div>;
 }

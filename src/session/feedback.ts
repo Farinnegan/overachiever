@@ -1,4 +1,5 @@
 import type { RepSound } from '../data/store.ts';
+import type { Callout } from './coach.ts';
 
 /** Rep sounds, so you don't have to look at the phone mid-set. */
 let audio: AudioContext | null = null;
@@ -37,26 +38,36 @@ export function announceRep(n: number, mode: RepSound) {
   } catch { /* sound is optional */ }
 }
 
-/** Spoken or beeped warning that the camera has lost you mid-set. */
-export function announceLost(mode: RepSound) {
+function tones(freqs: number[]) {
+  if (!audio) return;
+  freqs.forEach((f, i) => {
+    const osc = audio!.createOscillator();
+    const gain = audio!.createGain();
+    const at = audio!.currentTime + i * 0.22;
+    osc.frequency.value = f;
+    gain.gain.setValueAtTime(0.25, at);
+    gain.gain.exponentialRampToValueAtTime(0.001, at + 0.2);
+    osc.connect(gain).connect(audio!.destination);
+    osc.start(at);
+    osc.stop(at + 0.21);
+  });
+}
+
+/**
+ * Setup and tracking callouts ("I can't see your knees, move the phone back"), said out loud so
+ * you don't have to walk over to the phone. Beep mode gets a falling two-tone for a problem and a
+ * rising two-tone for "got you"; silent mode stays silent.
+ */
+export function sayCallout(callout: Callout, mode: RepSound) {
   try {
     if (mode === 'voice' && 'speechSynthesis' in window) {
       speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance('I can’t see you. Get your head and shoulders in the frame.');
-      u.rate = 1.1;
+      const u = new SpeechSynthesisUtterance(callout.text);
+      u.rate = 1;
+      u.volume = 1;
       speechSynthesis.speak(u);
-    } else if (mode === 'beep' && audio) {
-      for (const [i, f] of [[0, 330], [1, 262]] as const) {
-        const osc = audio.createOscillator();
-        const gain = audio.createGain();
-        const at = audio.currentTime + i * 0.22;
-        osc.frequency.value = f;
-        gain.gain.setValueAtTime(0.25, at);
-        gain.gain.exponentialRampToValueAtTime(0.001, at + 0.2);
-        osc.connect(gain).connect(audio.destination);
-        osc.start(at);
-        osc.stop(at + 0.21);
-      }
+    } else if (mode === 'beep') {
+      tones(callout.kind === 'problem' ? [330, 262] : [523, 784]);
     }
   } catch { /* sound is optional */ }
 }

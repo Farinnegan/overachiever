@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import { createStore } from './store.ts';
-import { listPoseLogs } from './poseLogs.ts';
+import { getPoseLog, listPoseLogIds } from './poseLogs.ts';
 import type { PoseLog } from '../tracking/replay.ts';
 
 /**
@@ -44,9 +44,9 @@ function api(cfg: NonNullable<SyncConfig>, path: string, init?: RequestInit) {
 }
 
 function explain(res: Response): string {
-  if (res.status === 401) return 'GitHub rejected the token. It may be mistyped or expired.';
-  if (res.status === 403 || res.status === 404) return 'The token can’t write to this repo. Make sure it includes this repository with Contents: Read and write.';
-  return `GitHub answered ${res.status}. Try again in a bit.`;
+  if (res.status === 401) return 'GitHub rejected the token (401). It may be mistyped or expired. Make a new one in Settings.';
+  if (res.status === 403 || res.status === 404) return `The token can’t write to this repo (${res.status}). Make sure it includes this repository with Contents: Read and write.`;
+  return `GitHub answered ${res.status}. It will try again.`;
 }
 
 /** UTF-8 safe base64, chunked so long sessions don't overflow the call stack. */
@@ -64,44 +64,87 @@ export function logPath(log: PoseLog): string {
   return `${SESSIONS_DIR}/${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}_${log.exercise}_${log.id}.json`;
 }
 
-async function uploadOne(cfg: NonNullable<SyncConfig>, log: PoseLog): Promise<string | null> {
+async function uploadOnce(cfg: NonNullable<SyncConfig>, log: PoseLog): Promise<{ error: string | null; retry: boolean }> {
   const content = toBase64(JSON.stringify({ format: 'overachiever-pose-log-v1', ...log }));
   const message = `Pose data: ${log.exercise}, ${log.actualReps ?? '?'} reps (camera counted ${log.countedReps})`;
   const res = await api(cfg, `/contents/${logPath(log)}`, { method: 'PUT', body: JSON.stringify({ message, content }) });
-  if (res.ok) return null;
+  if (res.ok) return { error: null, retry: false };
   if (res.status === 422) {
     // Already uploaded (GitHub wants a sha to overwrite an existing file).
     const body = await res.json().catch(() => ({})) as { message?: string };
-    if (/sha/i.test(body.message ?? '')) return null;
+    if (/sha/i.test(body.message ?? '')) return { error: null, retry: false };
   }
-  return explain(res);
+  // 409 means another write to the repo landed at the same moment; 5xx is GitHub having a moment.
+  return { error: explain(res), retry: res.status === 409 || res.status >= 500 };
+}
+
+async function uploadOne(cfg: NonNullable<SyncConfig>, log: PoseLog): Promise<string | null> {
+  let last: string | null = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt) await new Promise((r) => setTimeout(r, 1000 * attempt));
+    const r = await uploadOnce(cfg, log);
+    if (!r.error) return null;
+    last = r.error;
+    if (!r.retry) break;
+  }
+  return last;
+}
+
+/** One pass over everything saved but not uploaded yet. Returns false if it hit a problem. */
+async function uploadRound(): Promise<boolean> {
+  const cfg = config.get();
+  if (!cfg) return true;
+  try {
+    const done = new Set(uploaded.get());
+    // Ids are the start time in ms, so sorting numerically uploads the oldest first.
+    const pending = (await listPoseLogIds()).filter((id) => !done.has(id)).sort((a, b) => Number(a) - Number(b));
+    if (!pending.length) return true;
+    status.set({ busy: true, message: `Uploading ${pending.length} session${pending.length === 1 ? '' : 's'}…`, bad: false });
+    let n = 0;
+    for (const id of pending) {
+      const log = await getPoseLog(id);
+      if (!log) continue; // deleted in the meantime
+      const err = await uploadOne(cfg, log);
+      if (err) { status.set({ busy: false, message: err, bad: true }); return false; }
+      uploaded.set((ids) => [...ids, id]);
+      n++;
+    }
+    status.set({ busy: false, message: `Uploaded ${n} session${n === 1 ? '' : 's'} to GitHub.`, bad: false });
+    return true;
+  } catch {
+    status.set({ busy: false, message: 'Couldn’t reach GitHub. It will try again when you’re back online.', bad: true });
+    return false;
+  }
 }
 
 let running: Promise<void> | null = null;
+let again = false;
 
-/** Upload every saved pose log that isn't on GitHub yet. Safe to call any time. */
+/**
+ * Upload every saved pose log that isn't on GitHub yet. Safe to call any time. If it is called
+ * while an upload is already running (say, right after saving a new session), the running one
+ * does another pass when it finishes, so the new session isn't left behind.
+ */
 export function uploadPending(): Promise<void> {
-  running ??= (async () => {
-    const cfg = config.get();
-    if (!cfg) return;
-    try {
-      const done = new Set(uploaded.get());
-      const pending = (await listPoseLogs()).filter((l) => !done.has(l.id)).reverse(); // oldest first
-      if (!pending.length) return;
-      status.set({ busy: true, message: `Uploading ${pending.length} session${pending.length === 1 ? '' : 's'}…`, bad: false });
-      let n = 0;
-      for (const log of pending) {
-        const err = await uploadOne(cfg, log);
-        if (err) { status.set({ busy: false, message: err, bad: true }); return; }
-        uploaded.set((ids) => [...ids, log.id]);
-        n++;
-      }
-      status.set({ busy: false, message: `Uploaded ${n} session${n === 1 ? '' : 's'} to GitHub.`, bad: false });
-    } catch {
-      status.set({ busy: false, message: 'Couldn’t reach GitHub. It will try again next time you open the app.', bad: true });
-    }
+  if (running) { again = true; return running; }
+  running = (async () => {
+    let ok = true;
+    do { again = false; ok = await uploadRound(); } while (again && ok);
   })().finally(() => { running = null; });
   return running;
+}
+
+let watching = false;
+
+/** Retry on its own when the phone comes back online, the app is reopened, and once a minute. */
+export function startSyncWatchers() {
+  if (watching) return;
+  watching = true;
+  const retry = () => { if (config.get()) void uploadPending(); };
+  window.addEventListener('online', retry);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') retry(); });
+  window.setInterval(retry, 60_000);
+  retry();
 }
 
 /** Check the token can see the repo, save it, and upload anything waiting. Returns an error or null. */

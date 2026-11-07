@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Activity, ArrowLeft, ArrowRight, Camera, CameraOff, Check, Flag, Minus, Plus, RotateCcw, SwitchCamera, X } from 'lucide-react';
-import { saveSession, updateSettings, useSettings } from '../data/store.ts';
+import { saveSession, useSettings } from '../data/store.ts';
 import { PoseLogger, savePoseLog } from '../data/poseLogs.ts';
-import { uploadPending } from '../data/sync.ts';
+import { uploadPending, useSyncConfig } from '../data/sync.ts';
 import { createTracker, EXERCISES, TRACKER_VERSION, type TrackResult, type Tracker } from '../tracking/exercises.ts';
 import { EXERCISE_IDS, type Exercise } from '../tracking/types.ts';
 import { loadPoseModel, type Landmarker } from './pose-model.ts';
 import { drawPose } from './overlay.ts';
-import { announceLost, announceRep, keepScreenOn, unlockSound } from './feedback.ts';
+import { announceRep, keepScreenOn, sayCallout, unlockSound } from './feedback.ts';
+import { SetupCoach } from './coach.ts';
 import { ClipRecorder } from './ClipRecorder.tsx';
 
 type Stage = 'setup' | 'loading' | 'live' | 'review';
 type Placement = 'floor' | 'low' | 'body' | 'other';
 const LAST_EXERCISE = 'overachiever-last-exercise';
-const LOST_AFTER_MS = 3000;
 const PLACEMENTS: { id: Placement; label: string }[] = [
   { id: 'floor', label: 'On the floor' },
   { id: 'low', label: 'Low (shin or knee height)' },
@@ -47,7 +47,7 @@ export function SessionPage() {
   // Review step
   const [actual, setActual] = useState(0);
   const [placement, setPlacement] = useState<Placement>('floor');
-  const [keepPose, setKeepPose] = useState(prefs.keepPoseData);
+  const syncConfig = useSyncConfig();
   const [saving, setSaving] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -65,10 +65,9 @@ export function SessionPage() {
   const lastProcessed = useRef(-Infinity);
   const lastVideoTime = useRef(-1);
   const aspectRef = useRef(0.75);
-  // Lost-tracking warning: only after it has seen you in position once, then at most every 12s.
-  const trackedAt = useRef<number | null>(null);
-  const lostWarnedAt = useRef(-Infinity);
-  const [lost, setLost] = useState(false);
+  // Spoken setup help ("I can't see your knees...") while the camera can't track you.
+  const coachRef = useRef<SetupCoach | null>(null);
+  const [setupNote, setSetupNote] = useState<string | null>(null);
   const soundRef = useRef(prefs.repSound);
   soundRef.current = prefs.repSound;
 
@@ -114,16 +113,10 @@ export function SessionPage() {
         aspectRef.current = aspect;
         const out = tracker.update(points, aspect, now);
         loggerRef.current.add(points, now);
-        if (out.rest !== null) trackedAt.current = now; // has locked onto your start position
-        if (out.status !== 'searching') {
-          if (trackedAt.current !== null) trackedAt.current = now;
-          setLost(false);
-        } else if (trackedAt.current !== null && now - trackedAt.current > LOST_AFTER_MS) {
-          setLost(true);
-          if (now - lostWarnedAt.current > 12000) {
-            lostWarnedAt.current = now;
-            announceLost(soundRef.current);
-          }
+        const callout = coachRef.current?.update(out.status, points, now);
+        if (callout) {
+          sayCallout(callout, soundRef.current);
+          setSetupNote(callout.kind === 'problem' ? callout.text : null);
         }
         if (canvasRef.current) drawPose(canvasRef.current, video, points, tracker.def.joints, out.status === 'bottom');
         if (out.counted) {
@@ -180,8 +173,8 @@ export function SessionPage() {
       }
       lastProcessed.current = -Infinity;
       lastVideoTime.current = -1;
-      trackedAt.current = null;
-      setLost(false);
+      coachRef.current = new SetupCoach(exercise);
+      setSetupNote(null);
       setTrack(null);
       releaseWake.current = await keepScreenOn();
       setStage('live');
@@ -203,7 +196,6 @@ export function SessionPage() {
   const end = () => {
     stopCamera();
     setActual(repRef.current);
-    setKeepPose(prefs.keepPoseData);
     setStage('review');
   };
 
@@ -224,16 +216,15 @@ export function SessionPage() {
         ...(actual !== counted ? { countedReps: counted } : {}),
       });
     }
-    if (keepPose && loggerRef.current.frameCount > 10) {
+    if (loggerRef.current.frameCount > 10) {
       try {
         await savePoseLog(loggerRef.current.build({
           id: `${began.getTime()}`, exercise, startedAt: began.toISOString(), aspect: aspectRef.current,
           trackerVersion: TRACKER_VERSION, countedReps: counted, actualReps: actual, placement,
         }));
-        void uploadPending(); // keeps running in the background after we leave this page
+        void uploadPending(); // goes straight to GitHub and keeps running after we leave this page
       } catch { /* pose data is optional */ }
     }
-    if (keepPose !== prefs.keepPoseData) updateSettings({ keepPoseData: keepPose });
     navigate('/');
   };
 
@@ -262,10 +253,11 @@ export function SessionPage() {
         <select id="placement" className="field" style={{ marginTop: 7 }} value={placement} onChange={(e) => setPlacement(e.target.value as Placement)}>
           {PLACEMENTS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
         </select>
-        <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 18, fontSize: 12, lineHeight: 1.5 }}>
-          <input type="checkbox" checked={keepPose} onChange={(e) => setKeepPose(e.target.checked)} style={{ marginTop: 3, accentColor: '#000' }} />
-          <span><b>Keep this session’s pose data</b> ({loggerRef.current.frameCount} frames{flags ? `, ${flags} missed-rep flag${flags === 1 ? '' : 's'}` : ''}). Joint positions only, no video, stored on this phone. Export it from Settings to tune the tracker.</span>
-        </label>
+        <p className="subtle" style={{ fontSize: 12, lineHeight: 1.5, margin: '18px 0 0' }}>
+          This session’s pose data ({loggerRef.current.frameCount} frames{flags ? `, ${flags} missed-rep flag${flags === 1 ? '' : 's'}` : ''}, joint positions only, no video) {syncConfig
+            ? <>uploads to <b>{syncConfig.repo}</b> as soon as you save.</>
+            : <>is kept on this phone. <b>GitHub isn’t connected</b>, so it won’t upload until you connect it in Settings.</>}
+        </p>
       </section>
       <button className="primary-btn" style={{ width: '100%', marginTop: 16, background: '#000', color: '#fff' }} disabled={saving} onClick={() => void save()}>
         <Check size={16} /> {actual > 0 ? `Save ${actual} ${actual === 1 ? 'rep' : 'reps'}` : 'Done, nothing to save'}
@@ -295,7 +287,7 @@ export function SessionPage() {
       {live && <>
         <div className="camera-overlay" />
         <div className="live-count" key={flash}>{reps}</div>
-        <div className={`live-status${lost ? ' lost' : ''}`}>{lost ? 'I can’t see you · get your head and shoulders in frame' : track?.text ?? def.text.searching}</div>
+        <div className={`live-status${setupNote ? ' lost' : ''}`}>{setupNote ?? track?.text ?? def.text.searching}</div>
         <button className="camera-control" style={{ position: 'absolute', right: 12, top: 12 }} onClick={() => void start(facing === 'user' ? 'environment' : 'user', true)} aria-label="Switch camera"><SwitchCamera size={17} /></button>
       </>}
       {!live && <div className="camera-idle">

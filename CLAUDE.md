@@ -1,6 +1,6 @@
 # Overachiever
 
-Personal camera rep counter (squats, front push-ups, side leg raises). Vite + React, no backend, deployed to GitHub Pages by `.github/workflows/deploy.yml` on push to `main`.
+Personal camera rep counter (squats, front push-ups, side leg raises, hip abduction). Vite + React, no backend, deployed to GitHub Pages by `.github/workflows/deploy.yml` on push to `main`.
 
 ## Workout data
 

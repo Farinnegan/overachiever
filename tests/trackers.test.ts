@@ -75,7 +75,7 @@ function profile(reps: number, depth = 1, repMs = 1600, holdMs = 1200): number[]
   return out.concat(Array(10).fill(0));
 }
 
-for (const [exercise, build] of [['push-up', pushup], ['squat', squat], ['side-leg-raise', legRaise]] as const) {
+for (const [exercise, build] of [['push-up', pushup], ['squat', squat], ['side-leg-raise', legRaise], ['hip-abduction', legRaise]] as const) {
   test(`${exercise}: counts full reps`, () => {
     assert.equal(run(exercise, build, profile(5)), 5);
   });
@@ -121,6 +121,24 @@ test('side leg raise lying on your side: smaller lifts still count', () => {
 test('side leg raise: shuffling into position does not count', () => {
   // Calibrate lying down, then slide the shoulders around while the hip angle swings.
   const tracker = createTracker('side-leg-raise');
+  let t = 0, reps = 0;
+  for (let i = 0; i < 25; i++) { tracker.update(sideLying(0), ASPECT, t); t += STEP; }
+  for (let i = 0; i < 60; i++) {
+    const shift = Math.min(0.3, i * 0.01);
+    if (tracker.update(sideLying(Math.abs(Math.sin(i / 6)), shift), ASPECT, t).counted) reps++;
+    t += STEP;
+  }
+  assert.equal(reps, 0);
+});
+
+test('hip abduction lying on your side: counts with the bottom knee hidden', () => {
+  let seed = 5;
+  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  assert.equal(run('hip-abduction', (d) => sideLying(d, 0, rand), profile(8, 1, 2600)), 8);
+});
+
+test('hip abduction: shuffling into position does not count', () => {
+  const tracker = createTracker('hip-abduction');
   let t = 0, reps = 0;
   for (let i = 0; i < 25; i++) { tracker.update(sideLying(0), ASPECT, t); t += STEP; }
   for (let i = 0; i < 60; i++) {

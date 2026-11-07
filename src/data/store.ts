@@ -33,7 +33,7 @@ export type WorkoutSession = {
 };
 export type AppData = { sessions: WorkoutSession[]; weeklyWorkoutGoal: number };
 
-const KNOWN: HistoryExercise[] = ['squat', 'push-up', 'side-leg-raise', 'bicep-curl'];
+const KNOWN: HistoryExercise[] = ['squat', 'push-up', 'side-leg-raise', 'hip-abduction', 'bicep-curl'];
 
 export function parseAppData(raw: unknown): AppData {
   const p = (raw ?? {}) as Partial<AppData>;
@@ -67,12 +67,11 @@ export function importAppData(raw: unknown): number {
 // ---------- Settings ----------
 
 export type RepSound = 'voice' | 'beep' | 'off';
-export type Settings = { keepPoseData: boolean; repSound: RepSound; showTracking: boolean };
+export type Settings = { repSound: RepSound; showTracking: boolean };
 
-export const settings = createStore<Settings>('overachiever-settings-v1', { keepPoseData: true, repSound: 'voice', showTracking: true }, (raw) => {
+export const settings = createStore<Settings>('overachiever-settings-v1', { repSound: 'voice', showTracking: true }, (raw) => {
   const p = (raw ?? {}) as Partial<Settings>;
   return {
-    keepPoseData: p.keepPoseData !== false,
     repSound: p.repSound === 'beep' || p.repSound === 'off' ? p.repSound : 'voice',
     showTracking: p.showTracking !== false,
   };
