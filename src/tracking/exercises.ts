@@ -161,6 +161,32 @@ export const EXERCISES: Record<Exercise, ExerciseDef> = {
       returning: 'Legs back together',
     },
   },
+  // Same measurement as the side leg raise (the hip angle on the visible side), counted separately
+  // so abduction sets get their own history and tuning. Lying on your side, the top leg lifting out
+  // to the side opens or closes that angle, so it counts in either direction.
+  // Thresholds are a first guess until real abduction sessions are uploaded and replayed.
+  'hip-abduction': {
+    id: 'hip-abduction',
+    label: 'Hip abduction',
+    joints: [LM.leftShoulder, LM.rightShoulder, LM.leftHip, LM.rightHip, LM.leftKnee, LM.rightKnee],
+    signal: 'Hip angle',
+    format: deg,
+    measure: (p, a) => rightHipAngle(p, a) ?? leftHipAngle(p, a),
+    sides: [{ joints: LEFT_LEG, measure: leftHipAngle }, { joints: RIGHT_LEG, measure: rightHipAngle }],
+    anchor: shoulderAnchor,
+    counter: { direction: 'either', scale: 'degrees', trigger: 16, release: 7, stableTolerance: 8, isValidRest: (r) => r >= 120 },
+    setup: 'Lie on your side with the phone on the floor a couple of meters away, facing your side. Your whole body needs to be in frame, head included: the pose model can’t find you from legs alone.',
+    steps: ['Lie on your side', 'Lift the top leg out', 'Lower it back'],
+    text: {
+      searching: 'Get your head, shoulders, hips and knees in view',
+      position: 'Lie on your side, legs together',
+      calibrating: 'Hold still for a second…',
+      ready: 'Ready · lift your top leg',
+      moving: 'Lift…',
+      bottom: 'Up · lower it back',
+      returning: 'Legs back together',
+    },
+  },
 };
 
 export type TrackResult = CounterOutput & { text: string };

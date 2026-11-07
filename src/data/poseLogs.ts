@@ -83,6 +83,27 @@ export async function savePoseLog(log: PoseLog) {
   changed();
 }
 
+/** Just the ids, so checking what still needs uploading doesn't load every log into memory. */
+export async function listPoseLogIds(): Promise<string[]> {
+  return (await tx<IDBValidKey[]>('readonly', (s) => s.getAllKeys())).map(String);
+}
+
+export function getPoseLog(id: string): Promise<PoseLog | undefined> {
+  return tx<PoseLog | undefined>('readonly', (s) => s.get(id));
+}
+
+/** Ids of saved logs, kept up to date as sessions are saved or deleted. */
+export function usePoseLogIds(): string[] | null {
+  const [ids, setIds] = useState<string[] | null>(null);
+  useEffect(() => {
+    const load = () => listPoseLogIds().then(setIds).catch(() => setIds([]));
+    load();
+    listeners.add(load);
+    return () => { listeners.delete(load); };
+  }, []);
+  return ids;
+}
+
 export async function clearPoseLogs() {
   await tx('readwrite', (s) => s.clear());
   changed();

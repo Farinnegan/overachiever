@@ -1,6 +1,6 @@
 # Overachiever
 
-A personal accountability app that runs in the phone browser. It counts squats, front-facing push-ups and side leg raises with the camera, keeps your workout history, streak and weekly target, and has no server: everything stays on the phone.
+A personal accountability app that runs in the phone browser. It counts squats, front-facing push-ups, side leg raises and hip abduction with the camera, keeps your workout history, streak and weekly target, and has no server: everything stays on the phone.
 
 Live: https://farinnegan.github.io/overachiever/
 
@@ -13,6 +13,7 @@ MediaPipe Pose Landmarker runs on the phone and gives 33 body points per frame. 
 | Squats | Knee angle (hip, knee, ankle) | Hips, knees, ankles |
 | Push-ups | Shoulder-to-wrist height divided by shoulder width | Shoulders, arms, hands (front view) |
 | Side leg raises | Angle at the pelvis between the two thighs | Hips and both knees |
+| Hip abduction | Hip angle (shoulder, hip, knee) on the visible side, lying on your side | Head, shoulders, hips, knees |
 
 You hold the starting position still for about half a second so it learns your personal starting value. A rep is moving far enough away from that value and coming back. All thresholds live in `src/tracking/exercises.ts`.
 
@@ -20,7 +21,8 @@ There is no model training. The pose model is Google's, and the counting is simp
 
 ## Improving the counts with your own data
 
-1. After a workout, the app asks how many reps you actually did and keeps the session's joint positions (no video).
+1. After a workout, the app asks how many reps you actually did and keeps the session's joint positions (no video). With GitHub connected in Settings, they upload to `data/sessions/` as soon as you save, and retry on their own if the connection drops.
+   While you set up, the app also says out loud what it can't see ("I can't see your knees, move the phone back") and "I've got you" once it has locked on.
 2. Settings → Export pose data gives you a JSON file.
 3. Change a threshold in `src/tracking/exercises.ts`, then run `npm run replay -- path/to/export.json`.
 4. Keep the change if more sessions match your actual count. Push to `main` and the site updates.

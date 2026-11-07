@@ -1,9 +1,9 @@
 /** One MediaPipe pose landmark. x and y are 0..1 of the video frame. */
 export type Point = { x: number; y: number; z?: number; visibility?: number };
 
-export type Exercise = 'squat' | 'push-up' | 'side-leg-raise';
+export type Exercise = 'squat' | 'push-up' | 'side-leg-raise' | 'hip-abduction';
 
-export const EXERCISE_IDS: Exercise[] = ['squat', 'push-up', 'side-leg-raise'];
+export const EXERCISE_IDS: Exercise[] = ['squat', 'push-up', 'side-leg-raise', 'hip-abduction'];
 
 /** MediaPipe pose landmark indices used by the app. */
 export const LM = {

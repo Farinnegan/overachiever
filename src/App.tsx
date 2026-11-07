@@ -12,8 +12,8 @@ import {
 import { clearPoseLogs, listPoseLogs, usePoseLogSummary } from './data/poseLogs.ts';
 import { EXERCISES } from './tracking/exercises.ts';
 import { SessionPage } from './session/SessionPage.tsx';
-import { SyncSettings } from './SyncSettings.tsx';
-import { isSyncConfigured, uploadPending } from './data/sync.ts';
+import { SyncBanner, SyncSettings } from './SyncSettings.tsx';
+import { startSyncWatchers, useSyncConfig } from './data/sync.ts';
 
 const localDay = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 const mondayStart = (date: Date) => {
@@ -44,6 +44,7 @@ const navItems = [
 
 function Shell({ children }: { children: ReactNode }) {
   const [path] = useLocation();
+  const syncing = useSyncConfig() !== null;
   useEffect(() => {
     const page = path === '/session' ? 'Workout' : path === '/history' ? 'History' : path === '/settings' ? 'Settings' : 'Today';
     document.title = `${page} · Overachiever`;
@@ -55,7 +56,7 @@ function Shell({ children }: { children: ReactNode }) {
       <nav className="nav-links" aria-label="Main navigation">
         {navItems.map(({ href, label }) => <Link href={href} key={href} className={`nav-link ${path === href ? 'active' : ''}`}>{label}</Link>)}
       </nav>
-      <span className="small-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><LockKeyhole size={12} /> on this phone only</span>
+      <span className="small-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}><LockKeyhole size={12} /> {syncing ? 'synced to GitHub' : 'on this phone only'}</span>
     </header>
     {children}
     {path !== '/session' && <nav className="bottom-nav" aria-label="Main navigation">
@@ -93,6 +94,7 @@ function Dashboard() {
         <p className="subtle" style={{ margin: '13px 0 0', fontSize: 14 }}>{hasToday ? 'You showed up today. Keep that promise to yourself.' : 'Nothing yet today. One honest set to begin.'}</p></div>
       <Link href="/session" className="primary-btn"><Dumbbell size={17} /> Start a workout <ArrowRight size={16} /></Link>
     </div>
+    <SyncBanner />
 
     <section className="panel hero-panel">
       <div className="small-label" style={{ color: 'rgba(255,255,255,.72)' }}>TODAY’S CHECK-IN</div>
@@ -219,7 +221,7 @@ function SettingsPage() {
       <div className="icon-tile"><Volume2 size={18} /></div>
       <div style={{ flex: 1 }}>
         <div className="setting-title">During a workout</div>
-        <p className="subtle setting-text">A sound on each rep, so you don’t have to look at the phone.</p>
+        <p className="subtle setting-text">A sound on each rep, and a spoken heads-up (“I can’t see your knees, move the phone back”) when the camera can’t track you, so you don’t have to look at the phone.</p>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {sounds.map((s) => <button key={s.id} className={prefs.repSound === s.id ? 'primary-btn' : 'secondary-btn'} style={{ padding: '10px 13px', fontSize: 12 }} onClick={() => updateSettings({ repSound: s.id })}>{s.label}</button>)}
         </div>
@@ -234,12 +236,8 @@ function SettingsPage() {
       <div className="icon-tile"><Database size={18} /></div>
       <div style={{ flex: 1 }}>
         <div className="setting-title">Pose data for tuning the tracker</div>
-        <p className="subtle setting-text">Joint positions from each workout (no video), kept on this phone, last 30 sessions. Export the file and replay it against tracker changes to see if counts get closer to what you actually did.</p>
-        <label style={{ display: 'flex', gap: 9, alignItems: 'center', fontSize: 12 }}>
-          <input type="checkbox" checked={prefs.keepPoseData} onChange={(e) => updateSettings({ keepPoseData: e.target.checked })} style={{ accentColor: '#000' }} />
-          Keep pose data by default
-        </label>
-        <div className="subtle" style={{ fontSize: 12, marginTop: 12 }}>
+        <p className="subtle setting-text">Joint positions from every workout (no video) are always kept on this phone, last 30 sessions, and uploaded to GitHub when it’s connected below. You can also export the file and replay it against tracker changes to see if counts get closer to what you actually did.</p>
+        <div className="subtle" style={{ fontSize: 12 }}>
           {poseLogs === null ? 'Loading…' : poseLogs.count === 0 ? 'No sessions saved yet.' :
             `${poseLogs.count} saved: ${Object.entries(poseLogs.byExercise).map(([e, n]) => `${n} ${EXERCISES[e as keyof typeof EXERCISES].label.toLowerCase()}`).join(', ')}`}
         </div>
@@ -273,7 +271,7 @@ function SettingsPage() {
 
     <p className="subtle" style={{ fontSize: 11, lineHeight: 1.6, marginTop: 22, display: 'flex', gap: 8 }}>
       <LockKeyhole size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-      There’s no server. Pose detection runs on your phone and the camera feed never leaves it. Workout history stays in this browser; pose data goes to GitHub only if you connect it above.
+      There’s no server. Pose detection runs on your phone and the camera feed never leaves it. Workout history stays in this browser; pose data goes to your GitHub repo once you connect it above.
     </p>
   </main>;
 }
@@ -285,7 +283,7 @@ function NotFound() {
 export default function App() {
   useEffect(() => {
     void navigator.storage?.persist?.().catch(() => undefined);
-    if (isSyncConfigured()) void uploadPending(); // retry anything that failed while offline
+    startSyncWatchers(); // uploads anything waiting now, and again whenever the phone is back online
   }, []);
   return <Router hook={useHashLocation}>
     <Shell><Switch>
